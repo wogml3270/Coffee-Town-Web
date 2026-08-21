@@ -1,0 +1,10 @@
+{
+  "name": "Coffee Town",
+  "short_name": "Coffee Town",
+  "description": "한 손으로 즐기는 모바일 바리스타 시뮬레이션",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F3EE",
+  "theme_color": "#355E4D",
+  "icons": [{ "src": "/kakao-app-icon-128.png", "sizes": "128x128", "type": "image/png" }]
+}
