@@ -5,7 +5,7 @@ import type { UpgradeDefinition } from "./components/CafeHub";
 import { LoginModal } from "./components/LoginModal";
 import { StartScreen } from "./components/StartScreen";
 import { gameReducer } from "./engine/gameEngine";
-import { ensureGuestSession, signOut, subscribeToAuth, toAuthUser } from "./services/authService";
+import { ensureGuestSession, saveGuestProgressSnapshot, signOut, subscribeToAuth, toAuthUser } from "./services/authService";
 import type { AuthUser } from "./services/authService";
 import { abandonGameSession, createGameSession, syncGameSession } from "./services/gameSessionService";
 import { subscribeToProgress } from "./services/realtimeService";
@@ -57,6 +57,17 @@ export const App = () => {
       setAuthReady(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (authUser?.isAnonymous) {
+      saveGuestProgressSnapshot({
+        gold: state.gold,
+        xp: state.xp,
+        level: state.level,
+        unlockedRecipes: baristaRecipes.filter((recipe) => recipe.unlockLevel <= state.level).map((recipe) => recipe.itemId),
+      });
+    }
+  }, [authUser?.isAnonymous, state.gold, state.level, state.xp]);
 
   useEffect(() => {
     if (!userId || authUser?.isAnonymous || !isSupabaseConfigured()) {

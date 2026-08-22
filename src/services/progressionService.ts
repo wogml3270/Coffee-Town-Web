@@ -9,6 +9,49 @@ export type PlayerProgress = Readonly<{
 
 export type UserUpgrade = Readonly<{ upgradeId: string; level: number }>;
 
+const defaultProgress: PlayerProgress = {
+  gold: 0,
+  xp: 0,
+  level: 1,
+  unlockedRecipes: ["americano_hot", "cafe_latte_hot"],
+};
+
+export const mergeGuestProgress = async (
+  userId: string,
+  guestProgress: PlayerProgress | null,
+): Promise<PlayerProgress> => {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from("user_progress")
+    .select("gold,xp,level,unlocked_recipes")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  const remote: PlayerProgress = data ? {
+    gold: Number(data.gold),
+    xp: Number(data.xp),
+    level: Number(data.level),
+    unlockedRecipes: data.unlocked_recipes ?? [],
+  } : defaultProgress;
+  const guest = guestProgress ?? defaultProgress;
+  const merged: PlayerProgress = {
+    gold: Math.max(remote.gold, guest.gold),
+    xp: Math.max(remote.xp, guest.xp),
+    level: Math.max(remote.level, guest.level),
+    unlockedRecipes: [...new Set([...remote.unlockedRecipes, ...guest.unlockedRecipes])],
+  };
+  const { error: upsertError } = await supabase.from("user_progress").upsert({
+    user_id: userId,
+    gold: merged.gold,
+    xp: merged.xp,
+    level: merged.level,
+    unlocked_recipes: merged.unlockedRecipes,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: "user_id" });
+  if (upsertError) throw upsertError;
+  return merged;
+};
+
 export const loadPlayerProgress = async (
   userId: string,
 ): Promise<Readonly<{ progress: PlayerProgress; upgrades: readonly UserUpgrade[] }>> => {
