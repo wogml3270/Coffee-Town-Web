@@ -78,8 +78,8 @@ export const StartScreen = ({ authReady, currentUser, onGuestStart, onPlayerStar
             <>
               <button className="ui-button min-h-14 w-full rounded-2xl bg-[#355E4D] px-5 font-bold text-white shadow-[0_8px_20px_rgba(53,94,77,.2)] disabled:opacity-60" disabled={guestPending} onClick={() => void startGuest()} type="button">{guestPending ? "게스트 세션 준비 중..." : "게스트로 5분 체험하기"}</button>
               <div className="flex items-center gap-3 py-1"><span className="h-px flex-1 bg-[#DED9D1]"/><span className="text-[11px] font-semibold text-[#8A948F]">로그인하면 진행 상황을 저장할 수 있어요</span><span className="h-px flex-1 bg-[#DED9D1]"/></div>
-              <button className="ui-button min-h-13 w-full rounded-2xl bg-[#FEE500] px-5 font-bold text-[#302E27]" onClick={() => void socialLogin("kakao")} type="button">카카오 1클릭 로그인</button>
-              <button className="ui-button min-h-13 w-full rounded-2xl border border-[#D8D8D8] bg-white px-5 font-bold text-[#3F4542]" onClick={() => void socialLogin("google")} type="button">Google로 로그인</button>
+              <button className="ui-button min-h-13 w-full rounded-2xl bg-[#FEE500] px-5 font-bold text-[#302E27]" onClick={() => void socialLogin("kakao")} type="button">카카오 로그인</button>
+              <button className="ui-button min-h-13 w-full rounded-2xl border border-[#D8D8D8] bg-white px-5 font-bold text-[#3F4542]" onClick={() => void socialLogin("google")} type="button">Google 로그인</button>
             </>
           )}
         </div>
