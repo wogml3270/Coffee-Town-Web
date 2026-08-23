@@ -11,7 +11,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "verify": "npm run typecheck && npm test && npm run build",
-    "verify:supabase": "node scripts/verify-supabase.mjs"
+    "verify:supabase": "node scripts/verify-supabase.mjs",
+    "assets:aether:plan": "node tools/aether/generate-assets.mjs --dry-run",
+    "assets:aether:generate": "node tools/aether/generate-assets.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",

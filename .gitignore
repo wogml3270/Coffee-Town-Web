@@ -4,5 +4,6 @@ dist/
 .env
 .env.*
 !.env.example
+tools/aether/aether.env.local
 .DS_Store
 *.log

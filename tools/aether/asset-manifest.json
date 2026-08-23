@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "defaults": {
+    "apiBaseUrl": "https://api.aetherforgeai.com",
+    "model": "GPT Image 1.5",
+    "outputRoot": "public/assets/game/generated"
+  },
+  "assets": [
+    {
+      "id": "barista-female-turnaround",
+      "category": "character",
+      "outputDirectory": "characters/female",
+      "referenceImages": [
+        "tools/aether/references/barista-female-reference.jpg"
+      ],
+      "prompt": "Create a production-ready character turnaround sheet for a cozy 2.5D mobile cafe time-management game. Preserve the exact identity, face, long dark hair, white shirt, beige apron, dark shorts, socks, and loafers from the reference. Show one consistent full-body character in four orthographic views: front, back, left, and right, arranged in a clean 2x2 sheet. Neutral idle pose, identical scale and proportions in every view, feet fully visible, generous empty space, soft premium stylized render, readable silhouette. Pure solid black #000000 background only. No cafe background, no props, no text, no logo, no UI, no cropped body parts, no extra character."
+    },
+    {
+      "id": "barista-male-turnaround",
+      "category": "character",
+      "outputDirectory": "characters/male",
+      "referenceImages": [
+        "tools/aether/references/barista-male-reference.jpg"
+      ],
+      "prompt": "Create a production-ready character turnaround sheet for a cozy 2.5D mobile cafe time-management game. Preserve the exact identity, face, short center-parted dark hair, black top, beige apron, loose light jeans, and sneakers from the reference. Show one consistent full-body character in four orthographic views: front, back, left, and right, arranged in a clean 2x2 sheet. Neutral idle pose, identical scale and proportions in every view, feet fully visible, generous empty space, soft premium stylized render, readable silhouette. Pure solid black #000000 background only. No cafe background, no props, no text, no logo, no UI, no cropped body parts, no extra character."
+    }
+  ]
+}
