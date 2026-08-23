@@ -45,4 +45,4 @@ SQL 마이그레이션과 seed는 `supabase/`에 있습니다. OAuth와 Redirect
 - [Vertical slice acceptance criteria](./docs/VERTICAL_SLICE_ACCEPTANCE.md)
 - [Technical baseline](./docs/TECHNICAL_BASELINE.md)
 - [Deployment runbook](./DEPLOYMENT.md)
-- [Aether asset pipeline](./tools/aether/README.md)
+- [Manual game asset guide](./public/assets/game/ASSET_GUIDE.md)
