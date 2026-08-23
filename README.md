@@ -38,3 +38,10 @@ vercel build
 ## Supabase
 
 SQL 마이그레이션과 seed는 `supabase/`에 있습니다. OAuth와 Redirect URL 설정은 [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)를 참고하세요.
+
+## Development plan
+
+- [Game vision](./docs/GAME_VISION.md)
+- [Vertical slice acceptance criteria](./docs/VERTICAL_SLICE_ACCEPTANCE.md)
+- [Technical baseline](./docs/TECHNICAL_BASELINE.md)
+- [Deployment runbook](./DEPLOYMENT.md)
