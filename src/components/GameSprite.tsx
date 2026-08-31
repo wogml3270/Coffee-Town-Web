@@ -1,6 +1,0 @@
-import type { ItemId } from "../types/game";
-type SpritePosition = readonly [number, number];
-const positions: Readonly<Record<string, SpritePosition>> = { coffee_beans:[0,0],hot_water:[1,0],cold_water:[2,0],ice:[3,0],milk:[0,1],grapefruit_syrup:[1,1],sparkling_water:[2,1],cold_brew:[3,1],cold_brew_concentrate:[3,1],vanilla_bean_sauce:[0,2],oat_milk:[1,2],grind:[2,2],extract:[3,2],steam:[0,3],empty_cup:[1,3],americano_hot:[2,3],americano_iced:[2,3],cafe_latte_hot:[3,3],grapefruit_aide:[1,1],vanilla_oat_cold_brew:[3,1] };
-export const GameSprite = ({ itemId, className="size-12" }: Readonly<{itemId:ItemId;className?:string}>) => { const [x,y]=positions[itemId]??positions.empty_cup!; return <span aria-hidden="true" className={`block bg-no-repeat ${className}`} style={{backgroundImage:"url('/assets/game/item-atlas.png')",backgroundSize:"400% 400%",backgroundPosition:`${x*100/3}% ${y*100/3}%`}}/>; };
-const customerIndex:Readonly<Record<string,number>>={"민서":0,"도윤":1,"하린":2,"서준":3,"지우":4};
-export const CustomerSprite=({name,className="size-14"}:Readonly<{name:string;className?:string}>)=><span aria-hidden="true" className={`block bg-no-repeat ${className}`} style={{backgroundImage:"url('/assets/game/customer-atlas.png')",backgroundSize:"500% 100%",backgroundPosition:`${(customerIndex[name]??0)*25}% 50%`}}/>;

@@ -1,48 +1,75 @@
-# Coffee Town Web
+# Coffee Town Three
 
-Coffee Town의 React/Vite 웹 게임입니다. Unity 프로젝트에서 분리되어 웹 앱, Vercel 설정, Supabase 스키마를 한 디렉터리에서 관리합니다.
+현재 버전: **0.2.0 — Sound & Automation Update**
 
-Node.js 24.x를 사용합니다. `.nvmrc`와 `package.json`의 `engines`가 Vercel Production 런타임과 같은 major 버전을 지정합니다.
-
-## Local development
+Coffee Town을 Three.js·React Three Fiber로 처음부터 다시 구축하는 독립 프로토타입입니다. 기존 Unity·React 저장소와 연결되지 않으며, 검증 뒤 인증·Vercel·Supabase를 이전할 수 있도록 Local-First 구조로 구성합니다.
 
 ```bash
-npm ci
-cp .env.example .env
+npm install
+npm run assets:generate
 npm run dev
 ```
 
-필수 공개 환경변수:
+## 조작법
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `WASD` 또는 방향키: 선택한 바리스타 이동
+- `Space`: 가까운 설비와 상호작용
+- `1`~`9`: 해당 번호 인벤토리 슬롯 직접 선택
+- `Enter`: 선택 재료와 인벤토리의 유효한 재료 조합
+- 마우스 짧게 클릭: 클릭한 바닥 위치로 이동
+- 마우스 드래그: 3D 카메라 회전
+- 두 방향키 동시 입력: 카메라 기준 대각선 이동
+- 인벤토리 슬롯 클릭: 사용할 아이템 직접 선택
 
-브라우저 번들에 포함되므로 service-role key는 절대 `VITE_*` 변수에 넣지 않습니다.
+스팀 완드는 별도 오브젝트가 아니라 에스프레소 머신에 결합되어 있습니다.
 
-## Validation
+## 전용 GLB 에셋
 
-```bash
-npm run verify
-npm run verify:supabase
-vercel build
-```
+`public/assets/models/`에는 확장형 카페 셸, 설비 12종, 캐릭터 2종을 각각 독립 GLB로 저장합니다. `scripts/generate-glb-assets.mjs`는 같은 에셋을 결정적으로 다시 생성하는 원본 빌드 스크립트입니다. 설비는 독립 배치·스케일 조정이 가능하며 그라인더 내부 원두, 머신 압력계·스팀 완드, 온수기 온도계, 탄산수 CO₂ 실린더, 과일청 유리 용기와 과육 등 식별 가능한 디테일을 포함합니다.
 
-`verify`는 TypeScript, Vitest, production build를 순서대로 실행합니다. `verify:supabase`는 자격증명 값을 출력하지 않고 Auth health와 RLS가 적용된 공개 업그레이드 카탈로그를 확인합니다.
+현재 GLB 목록: 확장 카페 맵, 그라인더, 에스프레소 머신/일체형 스팀 완드, 온음료 컵 선반, 아이스 컵 선반, 온수기, 통합 재료 냉장고, 제빙기, 탄산수 머신, 픽업 벨, 작업대, 지은, 재희.
 
-## Deployment
+현재 플레이 버전에서는 우유 전용 냉장고와 개별 과일청 통을 하나의 바닥형 `ingredient-fridge.glb`로 통합했습니다. 냉장고 상호작용 패널에서 우유와 스테이지별 과일청을 즉시 꺼내며, 컵 선반 역시 제조 시간이나 재사용 대기시간 없이 바로 사용합니다. 설비 작업 완료 후 쿨타임은 없고, 업그레이드는 제조·이동 속도와 피버 진입·지속시간, 팁 보너스에 집중합니다.
 
-프로젝트 루트의 `vercel.json`이 Vite build, `dist` 출력, SPA rewrite를 모두 고정합니다. `/auth/callback`도 `index.html`로 rewrite되며 앱이 OAuth code/hash를 처리합니다.
+## 현재 플레이 루프
 
-현재 로컬 `.vercel/project.json`은 기존 Vercel 프로젝트 `coffee-town`을 계속 가리킵니다. Git 자동 배포를 새 독립 저장소로 완전히 전환하려면 [DEPLOYMENT.md](./DEPLOYMENT.md)의 cutover 항목을 따릅니다.
+1. 생성 설비 앞에서 `Space`를 눌러 제조를 시작하고, 완료 후 다시 눌러 결과물을 회수합니다.
+2. 작업 중에는 캐릭터 이동이 잠기며 설비의 회전 링·발광·진행률로 상태를 확인합니다.
+3. 재료를 선택하고 에스프레소 머신 또는 스팀 완드에서 가공합니다.
+4. 재료 하나를 선택하고 `Enter`를 눌러 인벤토리의 유효한 상대 재료와 조합합니다.
+5. 완성 음료를 선택하고 픽업 벨에서 `Space`를 눌러 주문을 완료합니다.
+6. 5콤보 달성 시 15초간 피버가 발동합니다.
 
-## Supabase
+제조 설비는 `IDLE → PROCESSING → READY` 상태를 가지며 결과물을 회수하는 즉시 다시 사용할 수 있습니다. 컵과 냉장 재료는 대기시간 없이 바로 꺼냅니다. 로비에서 해금된 스테이지를 선택할 수 있고 목표 주문 수를 달성하면 다음 스테이지가 열립니다. 모바일에서는 바닥 탭 이동과 우측 하단 `작업`·`조합` 버튼을 사용합니다.
 
-SQL 마이그레이션과 seed는 `supabase/`에 있습니다. OAuth와 Redirect URL 설정은 [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)를 참고하세요.
+## 메뉴 및 성장
 
-## Development plan
+- 스테이지 1: 따뜻한 아메리카노, 카페라떼
+- 스테이지 2: 레몬에이드와 아이스 컵·제빙기·탄산수 머신·레몬청 설비 해금
+- 스테이지 3: 자몽에이드와 자몽청 설비 해금
+- 에이드 제조: 차가운 컵 + 얼음 → 얼음 컵 + 과일청 → 베이스 + 탄산수
+- 업그레이드: 제조시간, 캐릭터 이동속도, 피버 진입 콤보, 피버 지속시간, 팁 보너스
+- 프리미엄 자동화: 50,000G로 해금하며, 획득한 재료가 유효한 레시피를 이루면 자동 조합
+- 스테이지: 12개 영업 단계와 단계별 제한시간·목표·보상 배율
 
-- [Game vision](./docs/GAME_VISION.md)
-- [Vertical slice acceptance criteria](./docs/VERTICAL_SLICE_ACCEPTANCE.md)
-- [Technical baseline](./docs/TECHNICAL_BASELINE.md)
-- [Deployment runbook](./DEPLOYMENT.md)
-- [Manual game asset guide](./public/assets/game/ASSET_GUIDE.md)
+피버 중에는 골드가 3배가 되고 제조시간이 즉시 단축되며, 설비가 작동하는 동안에도 캐릭터가 1.65배 속도로 움직일 수 있습니다. 일반 영업 BGM은 차분한 카페 화음으로 재생되고 피버 진입 시 빠른 전용 BGM으로 전환됩니다. 설비 시작·완료, 조합, 판매 동전, UI 버튼, 캐릭터 발걸음 효과음은 Web Audio API로 실시간 합성합니다.
+
+전용 콘셉트 이미지는 `public/assets/concepts/coffee-town-cafe-direction-v1.png`에 보관합니다.
+
+## 버전 기록
+
+### 0.2.0 — Sound & Automation Update
+
+- 카페 BGM과 피버 전용 BGM 전환
+- 설비·조합·동전·UI·발걸음 합성 효과음
+- 화면 진입, 주문 교체, 인벤토리 획득, 냉장고, 피버 UI 애니메이션
+- 50,000G 오토 바리스타 자동 조합 업그레이드
+- 총 12개 스테이지로 확장
+- 누적 보유 골드 HUD와 무작위 주문 흐름
+
+### 0.1.0 — Playable 3D Prototype
+
+- React Three Fiber 기반 3D 카페와 캐릭터 이동
+- 설비 제조, 인벤토리, 레시피 조합, 주문 판매
+- 통합 재료 냉장고와 Local-First 진행 데이터
+- 스테이지·피버·기본 업그레이드 시스템
