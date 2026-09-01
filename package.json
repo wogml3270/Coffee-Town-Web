@@ -7,6 +7,8 @@
     "dev": "vite",
     "assets:generate": "node scripts/generate-glb-assets.mjs",
     "build": "tsc --noEmit && vite build",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "preview": "vite preview",
     "test": "vitest run"
   },
@@ -24,6 +26,7 @@
     "@types/react-dom": "latest",
     "@types/three": "latest",
     "@vitejs/plugin-react": "latest",
+    "prettier": "^3.9.6",
     "typescript": "latest",
     "vite": "latest",
     "vitest": "latest"

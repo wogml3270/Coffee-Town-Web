@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, StationId } from "./catalog";
-import { autoCombine, businessClock, combineSelected, createShift, interactStation, takeFridgeIngredient, tick, type ShiftState } from "./rules";
+import {
+  autoCombine,
+  businessClock,
+  combineSelected,
+  createShift,
+  interactStation,
+  takeFridgeIngredient,
+  tick,
+  type ShiftState,
+} from "./rules";
 import { menuCatalog } from "./catalog";
 
-const advance = (state: ShiftState, seconds: number) => Array.from({ length: seconds }).reduce<ShiftState>((current) => tick(current), state);
+const advance = (state: ShiftState, seconds: number) =>
+  Array.from({ length: seconds }).reduce<ShiftState>((current) => tick(current), state);
 const run = (state: ShiftState, station: StationId, selectedUid: string | null = null) => {
   const started = interactStation(state, station, selectedUid);
   const completed = advance(started, started.stations[station].remaining);
@@ -16,15 +26,25 @@ const assemble = (state: ShiftState, first: ItemId, second: ItemId) => {
 };
 
 describe("timed cafe production", () => {
-  it("runs a six minute business day from 09:00 to 21:00",()=>{
+  it("runs a six minute business day from 09:00 to 21:00", () => {
     expect(businessClock(360)).toBe("09:00");
     expect(businessClock(180)).toBe("15:00");
     expect(businessClock(0)).toBe("21:00");
   });
 
-  it("unlocks exactly one of fifteen cafe drinks per stage",()=>{
+  it("starts with four core drinks, then unlocks one menu per stage", () => {
     expect(menuCatalog).toHaveLength(15);
-    expect(new Set(menuCatalog.map(({stage})=>stage)).size).toBe(15);
+    expect(menuCatalog.filter(({ stage }) => stage === 1).map(({ id }) => id)).toEqual([
+      "americano",
+      "iced_americano",
+      "latte",
+      "iced_latte",
+    ]);
+    expect(
+      Array.from({ length: 11 }, (_, index) => menuCatalog.filter(({ stage }) => stage === index + 2)).every(
+        (menus) => menus.length === 1,
+      ),
+    ).toBe(true);
   });
   it("locks a machine until processing completes and is immediately reusable after collection", () => {
     const started = interactStation(createShift(), "grinder", null);

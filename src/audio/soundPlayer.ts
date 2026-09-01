@@ -5,11 +5,24 @@ const stageTracks = [
 ] as const;
 const lobbyTrack = "/assets/audio/hyp-full-of-sunshine.mp3";
 const musicPreferenceKey = "coffee-town-bgm-enabled";
+const musicVolumeKey = "coffee-town-bgm-volume";
+const effectsVolumeKey = "coffee-town-sfx-volume";
+const savedVolume = (key: string, fallback: number) =>
+  Math.max(0, Math.min(1, Number(localStorage.getItem(key) ?? fallback)));
 
-const trackForStage = (stageId: number) => stageTracks[Math.min(stageTracks.length - 1, Math.floor((Math.max(1, stageId) - 1) / 4))] ?? stageTracks[0];
+const trackForStage = (stageId: number) =>
+  stageTracks[Math.min(stageTracks.length - 1, Math.floor((Math.max(1, stageId) - 1) / 4))] ?? stageTracks[0];
 
 const audioContext = () => new AudioContext();
-const note = (context: AudioContext, destination: AudioNode, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine") => {
+const note = (
+  context: AudioContext,
+  destination: AudioNode,
+  frequency: number,
+  start: number,
+  duration: number,
+  volume: number,
+  type: OscillatorType = "sine",
+) => {
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   oscillator.type = type;
@@ -27,19 +40,25 @@ export const createSoundPlayer = () => {
   let master: GainNode | null = null;
   let music: HTMLAudioElement | null = null;
   let musicEnabled = localStorage.getItem(musicPreferenceKey) !== "false";
+  let musicVolume = savedVolume(musicVolumeKey, 0.65);
+  let effectsVolume = savedVolume(effectsVolumeKey, 0.7);
   let stageId = 1;
   let fever = false;
   let stepAt = 0;
   const ensure = () => {
     context ??= audioContext();
-    if (!master) { master = context.createGain(); master.gain.value = 0.34; master.connect(context.destination); }
+    if (!master) {
+      master = context.createGain();
+      master.gain.value = 0.34 * effectsVolume;
+      master.connect(context.destination);
+    }
     if (context.state === "suspended") void context.resume();
     return { context, master };
   };
   const applyMusicMode = () => {
     if (!music) return;
     music.playbackRate = fever ? 1.08 : 1;
-    music.volume = fever ? 0.44 : 0.32;
+    music.volume = (fever ? 0.44 : 0.32) * musicVolume;
   };
   const playTrack = (source: string) => {
     if (!music || !music.src.endsWith(source)) {
@@ -57,35 +76,63 @@ export const createSoundPlayer = () => {
     fever = false;
     playTrack(trackForStage(stageId));
   };
-  const startLobbyMusic = () => { fever = false; playTrack(lobbyTrack); };
+  const startLobbyMusic = () => {
+    fever = false;
+    playTrack(lobbyTrack);
+  };
   const setFever = (active: boolean) => {
     if (fever === active) return;
     fever = active;
     applyMusicMode();
-    if (active) effect([523.25, 659.25, 783.99, 1046.5], .11, .06, "square");
+    if (active) effect([523.25, 659.25, 783.99, 1046.5], 0.11, 0.06, "square");
   };
-  const effect = (frequencies: readonly number[], duration = .12, volume = .055, type: OscillatorType = "square") => {
-    const audio = ensure(); const now = audio.context.currentTime;
-    frequencies.forEach((frequency, index) => note(audio.context, audio.master, frequency, now + index * duration * .55, duration, volume, type));
+  const effect = (
+    frequencies: readonly number[],
+    duration = 0.12,
+    volume = 0.055,
+    type: OscillatorType = "square",
+  ) => {
+    const audio = ensure();
+    const now = audio.context.currentTime;
+    frequencies.forEach((frequency, index) =>
+      note(audio.context, audio.master, frequency, now + index * duration * 0.55, duration, volume, type),
+    );
   };
   return {
     startMusic,
     startLobbyMusic,
     stopMusic: () => music?.pause(),
     isMusicEnabled: () => musicEnabled,
+    getMusicVolume: () => musicVolume,
+    getEffectsVolume: () => effectsVolume,
     setMusicEnabled: (enabled: boolean) => {
       musicEnabled = enabled;
       localStorage.setItem(musicPreferenceKey, String(enabled));
       if (enabled) void music?.play().catch(() => undefined);
       else music?.pause();
     },
+    setMusicVolume: (volume: number) => {
+      musicVolume = Math.max(0, Math.min(1, volume));
+      localStorage.setItem(musicVolumeKey, String(musicVolume));
+      applyMusicMode();
+    },
+    setEffectsVolume: (volume: number) => {
+      effectsVolume = Math.max(0, Math.min(1, volume));
+      localStorage.setItem(effectsVolumeKey, String(effectsVolume));
+      if (master) master.gain.value = 0.34 * effectsVolume;
+    },
     setFever,
-    playUi: () => effect([440, 620], .055, .025, "sine"),
-    playMachineStart: () => effect([110, 145, 190], .16, .045, "sawtooth"),
-    playMachineReady: () => effect([523.25, 659.25, 783.99], .12, .05, "triangle"),
-    playCombine: () => effect([392, 523.25, 659.25, 783.99], .1, .05, "square"),
-    playCoin: () => effect([880, 1174.66, 1567.98], .09, .055, "sine"),
-    playFootstep: () => { const now = performance.now(); if (now - stepAt < 260) return; stepAt = now; effect([92 + Math.random() * 18], .045, .018, "triangle"); },
+    playUi: () => effect([440, 620], 0.055, 0.025, "sine"),
+    playMachineStart: () => effect([110, 145, 190], 0.16, 0.045, "sawtooth"),
+    playMachineReady: () => effect([523.25, 659.25, 783.99], 0.12, 0.05, "triangle"),
+    playCombine: () => effect([392, 523.25, 659.25, 783.99], 0.1, 0.05, "square"),
+    playCoin: () => effect([880, 1174.66, 1567.98], 0.09, 0.055, "sine"),
+    playFootstep: () => {
+      const now = performance.now();
+      if (now - stepAt < 260) return;
+      stepAt = now;
+      effect([92 + Math.random() * 18], 0.045, 0.018, "triangle");
+    },
   };
 };
 

@@ -1,10 +1,17 @@
 import type { Session, User } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
+import { clearGuestProgress, setGuestPersistenceEnabled } from "../game/progressPersistence";
 
-export type PlayerProfile = Readonly<{ userId: string; email: string | null; nickname: string | null; avatarUrl: string | null }>;
+export type PlayerProfile = Readonly<{
+  userId: string;
+  email: string | null;
+  nickname: string | null;
+  avatarUrl: string | null;
+}>;
 export type SocialProvider = "google" | "kakao";
 
-const secureAvatar = (value: unknown) => typeof value === "string" ? value.replace(/^http:\/\//, "https://") : null;
+const secureAvatar = (value: unknown) =>
+  typeof value === "string" ? value.replace(/^http:\/\//, "https://") : null;
 const socialProfile = (user: User) => ({
   email: user.email ?? null,
   avatar_url: secureAvatar(user.user_metadata.avatar_url ?? user.user_metadata.picture),
@@ -24,36 +31,74 @@ const signInWithProvider = async (provider: SocialProvider) => {
       ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : {}),
     },
   });
-  if (error) { oauthStarting = false; throw error; }
+  if (error) {
+    oauthStarting = false;
+    throw error;
+  }
 };
 export const signInWithGoogle = () => signInWithProvider("google");
 export const signInWithKakao = () => signInWithProvider("kakao");
 
-export const signOut = async () => { const { error } = await supabase.auth.signOut(); if (error) throw error; };
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+  setGuestPersistenceEnabled(true);
+  window.location.reload();
+};
 
 let callbackExchange: Promise<Session> | null = null;
 const exchangeOAuthCode = async (): Promise<Session> => {
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
-  if (code) { const { data, error } = await supabase.auth.exchangeCodeForSession(code); if (error) throw error; if (data.session) return data.session; }
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) throw error;
+    if (data.session) return data.session;
+  }
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
   if (!data.session) throw new Error("소셜 로그인 세션을 확인하지 못했습니다.");
   return data.session;
 };
-export const completeOAuthCallback = (): Promise<Session> => callbackExchange ??= exchangeOAuthCode();
+export const completeOAuthCallback = (): Promise<Session> =>
+  (callbackExchange ??= exchangeOAuthCode().then((session) => {
+    clearGuestProgress();
+    return session;
+  }));
 
 export const syncProfile = async (user: User): Promise<PlayerProfile> => {
+  setGuestPersistenceEnabled(false);
   const metadata = socialProfile(user);
-  const { data: existing, error: readError } = await supabase.from("profiles").select("nickname").eq("user_id", user.id).maybeSingle();
+  const { data: existing, error: readError } = await supabase
+    .from("profiles")
+    .select("nickname")
+    .eq("user_id", user.id)
+    .maybeSingle();
   if (readError) throw readError;
-  const { data, error } = await supabase.from("profiles").upsert({ user_id: user.id, ...metadata, nickname: existing?.nickname ?? null, updated_at: new Date().toISOString() }, { onConflict: "user_id" }).select("user_id,email,nickname,avatar_url").single();
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert(
+      {
+        user_id: user.id,
+        ...metadata,
+        nickname: existing?.nickname ?? null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    )
+    .select("user_id,email,nickname,avatar_url")
+    .single();
   if (error) throw error;
   return { userId: data.user_id, email: data.email, nickname: data.nickname, avatarUrl: data.avatar_url };
 };
 
 export const saveNickname = async (userId: string, nickname: string): Promise<PlayerProfile> => {
-  const { data, error } = await supabase.from("profiles").update({ nickname: nickname.trim(), updated_at: new Date().toISOString() }).eq("user_id", userId).select("user_id,email,nickname,avatar_url").single();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ nickname: nickname.trim(), updated_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .select("user_id,email,nickname,avatar_url")
+    .single();
   if (error) throw error;
   return { userId: data.user_id, email: data.email, nickname: data.nickname, avatarUrl: data.avatar_url };
 };
@@ -61,10 +106,18 @@ export const saveNickname = async (userId: string, nickname: string): Promise<Pl
 export const getCurrentProfile = async (): Promise<PlayerProfile | null> => {
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
-  return data.session ? syncProfile(data.session.user) : null;
+  if (!data.session) {
+    setGuestPersistenceEnabled(true);
+    return null;
+  }
+  return syncProfile(data.session.user);
 };
 
 export const subscribeToAuth = (listener: (profile: PlayerProfile | null) => void) => {
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => { window.setTimeout(() => { void (session ? syncProfile(session.user).then(listener) : Promise.resolve(listener(null))); }, 0); });
+  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    window.setTimeout(() => {
+      void (session ? syncProfile(session.user).then(listener) : Promise.resolve(listener(null)));
+    }, 0);
+  });
   return () => data.subscription.unsubscribe();
 };

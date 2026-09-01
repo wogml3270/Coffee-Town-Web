@@ -13,12 +13,12 @@ describe("exitEarnings", () => {
   });
 });
 
-describe("business day progression",()=>{
-  it("21시 정상 마감만 다음 영업일을 해금한다",()=>{
-    expect(unlockedAfterFullDay(3,3)).toBe(4);
-    expect(exitEarnings("shift",250)).toBe(250);
+describe("business day progression", () => {
+  it("21시 정상 마감만 다음 영업일을 해금한다", () => {
+    expect(unlockedAfterFullDay(3, 3)).toBe(4);
+    expect(exitEarnings("shift", 250)).toBe(250);
   });
-  it("이미 앞선 스테이지를 다시 마감해도 해금 단계를 낮추지 않는다",()=>{
-    expect(unlockedAfterFullDay(8,2)).toBe(8);
+  it("이미 앞선 스테이지를 다시 마감해도 해금 단계를 낮추지 않는다", () => {
+    expect(unlockedAfterFullDay(8, 2)).toBe(8);
   });
 });
