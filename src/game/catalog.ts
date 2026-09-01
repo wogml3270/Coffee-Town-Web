@@ -19,14 +19,13 @@ export type DrinkId = (typeof drinkIds)[number];
 export type ItemId =
   | "ground_coffee"
   | "espresso"
-  | "hot_cup"
+  | "cup"
   | "espresso_cup"
   | "hot_water"
   | "cold_water"
   | "milk"
   | "oat_milk"
   | "steamed_milk"
-  | "cold_cup"
   | "ice"
   | "iced_cup"
   | "sparkling_water"
@@ -62,7 +61,6 @@ export type StationId =
   | "grinder"
   | "espresso"
   | "cups"
-  | "coldCups"
   | "water"
   | "coldWater"
   | "fridge"
@@ -79,14 +77,13 @@ export type CombinationRecipe = Readonly<{ inputs: readonly [ItemId, ItemId]; ou
 export const labels: Readonly<Record<ItemId, string>> = {
   ground_coffee: "분쇄 원두",
   espresso: "에스프레소",
-  hot_cup: "따뜻한 컵",
+  cup: "컵",
   espresso_cup: "에스프레소 컵",
   hot_water: "뜨거운 물",
   cold_water: "차가운 물",
   milk: "우유",
   oat_milk: "오트밀크",
   steamed_milk: "스팀 밀크",
-  cold_cup: "아이스 컵",
   ice: "얼음",
   iced_cup: "얼음 컵",
   sparkling_water: "탄산수",
@@ -136,9 +133,8 @@ export const labels: Readonly<Record<ItemId, string>> = {
 export const stationLabels: Readonly<Record<StationId, string>> = {
   grinder: "그라인더",
   espresso: "에스프레소 머신",
-  cups: "온음료 컵",
-  coldCups: "아이스 컵",
-  water: "온수기",
+  cups: "컵 선반",
+  water: "정수기",
   coldWater: "냉수기",
   fridge: "재료 냉장고",
   steam: "스팀",
@@ -169,79 +165,79 @@ export type MenuDefinition = Readonly<{
   recipe: string;
 }>;
 export const menuCatalog: readonly MenuDefinition[] = [
-  { id: "americano", name: "아메리카노", stage: 1, reward: 100, recipe: "따뜻한 컵 + 에스프레소 + 온수" },
+  { id: "americano", name: "아메리카노", stage: 1, reward: 4000, recipe: "컵 + 에스프레소 + 온수" },
   {
     id: "iced_americano",
     name: "아이스 아메리카노",
     stage: 1,
-    reward: 120,
-    recipe: "아이스 컵 + 얼음 + 에스프레소 + 냉수",
+    reward: 4300,
+    recipe: "컵 + 얼음 + 에스프레소 + 냉수",
   },
-  { id: "latte", name: "카페라떼", stage: 1, reward: 135, recipe: "따뜻한 컵 + 에스프레소 + 스팀 밀크" },
+  { id: "latte", name: "카페라떼", stage: 1, reward: 4500, recipe: "컵 + 에스프레소 + 스팀 밀크" },
   {
     id: "iced_latte",
     name: "아이스 카페라떼",
     stage: 1,
-    reward: 145,
-    recipe: "아이스 컵 + 얼음 + 우유 + 에스프레소",
+    reward: 4800,
+    recipe: "컵 + 얼음 + 우유 + 에스프레소",
   },
   {
     id: "vanilla_latte",
     name: "바닐라 라떼",
     stage: 2,
-    reward: 165,
-    recipe: "따뜻한 컵 + 에스프레소 + 바닐라 시럽 + 스팀 밀크",
+    reward: 5000,
+    recipe: "컵 + 에스프레소 + 바닐라 시럽 + 스팀 밀크",
   },
   {
     id: "mocha",
     name: "카페모카",
     stage: 3,
-    reward: 180,
-    recipe: "따뜻한 컵 + 에스프레소 + 초콜릿 소스 + 스팀 밀크",
+    reward: 5200,
+    recipe: "컵 + 에스프레소 + 초콜릿 소스 + 스팀 밀크",
   },
   {
     id: "caramel_macchiato",
     name: "카라멜 마키아토",
     stage: 4,
-    reward: 200,
-    recipe: "따뜻한 컵 + 바닐라 시럽 + 스팀 밀크 + 에스프레소 + 카라멜",
+    reward: 5200,
+    recipe: "컵 + 바닐라 시럽 + 스팀 밀크 + 에스프레소 + 카라멜",
   },
-  { id: "lemonade", name: "레몬에이드", stage: 5, reward: 170, recipe: "아이스 컵 + 얼음 + 레몬청 + 탄산수" },
+  { id: "lemonade", name: "레몬에이드", stage: 5, reward: 5000, recipe: "컵 + 얼음 + 레몬청 + 탄산수" },
   {
     id: "grapefruitade",
     name: "자몽에이드",
     stage: 6,
-    reward: 185,
-    recipe: "아이스 컵 + 얼음 + 자몽청 + 탄산수",
+    reward: 5500,
+    recipe: "컵 + 얼음 + 자몽청 + 탄산수",
   },
-  { id: "yuzu_tea", name: "유자차", stage: 7, reward: 170, recipe: "따뜻한 컵 + 유자청 + 온수" },
-  { id: "matcha_latte", name: "말차라떼", stage: 8, reward: 195, recipe: "따뜻한 컵 + 말차 + 스팀 밀크" },
+  { id: "yuzu_tea", name: "유자차", stage: 7, reward: 4800, recipe: "컵 + 유자청 + 온수" },
+  { id: "matcha_latte", name: "말차라떼", stage: 8, reward: 5200, recipe: "컵 + 말차 + 스팀 밀크" },
   {
     id: "chocolate_latte",
     name: "초콜릿 라떼",
     stage: 9,
-    reward: 190,
-    recipe: "따뜻한 컵 + 초콜릿 소스 + 스팀 밀크",
+    reward: 5200,
+    recipe: "컵 + 초콜릿 소스 + 스팀 밀크",
   },
   {
     id: "cold_brew",
     name: "콜드브루",
     stage: 10,
-    reward: 210,
-    recipe: "아이스 컵 + 얼음 + 콜드브루 원액 + 냉수",
+    reward: 4800,
+    recipe: "컵 + 얼음 + 콜드브루 원액 + 냉수",
   },
   {
     id: "vanilla_oat_cold_brew",
     name: "바닐라빈 오트 콜드브루",
     stage: 11,
-    reward: 260,
+    reward: 6000,
     recipe: "얼음 컵 + 오트밀크 + 콜드브루 + 바닐라빈",
   },
   {
     id: "mocha_blended",
     name: "카페모카 아이스 블렌디드",
     stage: 12,
-    reward: 290,
+    reward: 6500,
     recipe: "얼음 컵 + 우유 + 에스프레소 + 초콜릿을 블렌딩",
   },
 ];
@@ -265,7 +261,7 @@ export const stages: readonly StageDefinition[] = Array.from(
 );
 
 export const recipes: readonly CombinationRecipe[] = [
-  { inputs: ["espresso", "hot_cup"], output: "espresso_cup" },
+  { inputs: ["espresso", "cup"], output: "espresso_cup" },
   { inputs: ["espresso_cup", "hot_water"], output: "americano" },
   { inputs: ["iced_cup", "espresso"], output: "iced_espresso_base" },
   { inputs: ["iced_espresso_base", "cold_water"], output: "iced_americano" },
@@ -276,20 +272,20 @@ export const recipes: readonly CombinationRecipe[] = [
   { inputs: ["vanilla_espresso", "steamed_milk"], output: "vanilla_latte" },
   { inputs: ["espresso_cup", "chocolate_sauce"], output: "mocha_base" },
   { inputs: ["mocha_base", "steamed_milk"], output: "mocha" },
-  { inputs: ["hot_cup", "vanilla_syrup"], output: "vanilla_cup" },
+  { inputs: ["cup", "vanilla_syrup"], output: "vanilla_cup" },
   { inputs: ["vanilla_cup", "steamed_milk"], output: "vanilla_milk_cup" },
   { inputs: ["vanilla_milk_cup", "espresso"], output: "caramel_base" },
   { inputs: ["caramel_base", "caramel_sauce"], output: "caramel_macchiato" },
-  { inputs: ["cold_cup", "ice"], output: "iced_cup" },
+  { inputs: ["cup", "ice"], output: "iced_cup" },
   { inputs: ["iced_cup", "lemon_syrup"], output: "lemon_base" },
   { inputs: ["lemon_base", "sparkling_water"], output: "lemonade" },
   { inputs: ["iced_cup", "grapefruit_syrup"], output: "grapefruit_base" },
   { inputs: ["grapefruit_base", "sparkling_water"], output: "grapefruitade" },
-  { inputs: ["hot_cup", "yuzu_syrup"], output: "yuzu_base" },
+  { inputs: ["cup", "yuzu_syrup"], output: "yuzu_base" },
   { inputs: ["yuzu_base", "hot_water"], output: "yuzu_tea" },
-  { inputs: ["hot_cup", "matcha_powder"], output: "matcha_cup" },
+  { inputs: ["cup", "matcha_powder"], output: "matcha_cup" },
   { inputs: ["matcha_cup", "steamed_milk"], output: "matcha_latte" },
-  { inputs: ["hot_cup", "chocolate_sauce"], output: "chocolate_cup" },
+  { inputs: ["cup", "chocolate_sauce"], output: "chocolate_cup" },
   { inputs: ["chocolate_cup", "steamed_milk"], output: "chocolate_latte" },
   { inputs: ["iced_cup", "cold_brew_concentrate"], output: "cold_brew_base" },
   { inputs: ["cold_brew_base", "cold_water"], output: "cold_brew" },

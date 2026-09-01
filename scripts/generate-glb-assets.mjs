@@ -333,19 +333,69 @@ const workbench = () => {
   cylinder(g, [0.3, 0.3, 0.025, 24], [0.38, 0.98, 0.05], "#eadcc3", "FinishPad");
   return g;
 };
-const cafeShell = () => {
+const cafeShell = (palette = {}) => {
   const g = groupNamed("CafeShell");
-  box(g, [15, 0.35, 11], [0, -0.18, 0.1], "#c8976d", "ExpandedFloor");
-  box(g, [15, 4.4, 0.28], [0, 2.2, -5.25], "#ead7b5", "BackWall");
-  box(g, [0.28, 4.4, 11], [-7.35, 2.2, 0.1], "#ead7b5", "SideWall");
-  box(g, [11.65, 1.12, 1.35], [-1.2, 0.56, -4.1], "#405e50", "OpenBackCounter");
-  box(g, [11.8, 0.16, 1.5], [-1.2, 1.2, -4.08], "#8b5a38", "BackWalnutTop", 0.18);
-  box(g, [1.35, 1.12, 7.1], [-6.55, 0.56, -0.55], "#405e50", "OpenSideCounter");
-  box(g, [1.5, 0.16, 7.25], [-6.55, 1.2, -0.55], "#8b5a38", "SideWalnutTop", 0.18);
-  box(g, [5.3, 1.12, 1.35], [3.85, 0.56, 3.75], "#405e50", "ServeCounter");
-  box(g, [5.45, 0.16, 1.5], [3.85, 1.2, 3.75], "#8b5a38", "ServeWalnutTop", 0.18);
-  box(g, [11.4, 0.12, 0.08], [-1.2, 0.18, -3.4], "#2d433a", "BackCounterKickboard");
-  box(g, [15, 0.18, 0.16], [0, 1.15, -5.05], "#9b6a47", "WallTrim");
+  const floor = palette.floor ?? "#c8976d";
+  const wall = palette.wall ?? "#ead7b5";
+  const cabinet = palette.cabinet ?? "#405e50";
+  const wood = palette.wood ?? "#8b5a38";
+  const accent = palette.accent ?? "#b98a58";
+  box(g, [18, 0.35, 13], [0, -0.18, 0.1], floor, "ExpandedFloor");
+  box(g, [18, 4.8, 0.28], [0, 2.4, -5.45], wall, "BackWall");
+  box(g, [0.28, 4.8, 13], [-8.85, 2.4, 0.1], wall, "SideWall");
+  box(g, [12.4, 1.12, 1.35], [-2.2, 0.56, -4.1], cabinet, "StraightMainCounter");
+  box(g, [12.55, 0.16, 1.5], [-2.2, 1.2, -4.08], wood, "StraightWalnutTop", 0.18);
+  box(g, [5.3, 1.12, 1.35], [3.85, 0.56, 3.75], cabinet, "ServeCounter");
+  box(g, [5.45, 0.16, 1.5], [3.85, 1.2, 3.75], wood, "ServeWalnutTop", 0.18);
+  box(g, [12.15, 0.12, 0.08], [-2.2, 0.18, -3.4], "#2d433a", "BackCounterKickboard");
+  box(g, [18, 0.18, 0.16], [0, 1.15, -5.25], accent, "WallTrim");
+  box(g, [3.3, 1.85, 0.12], [-2.2, 2.75, -5.08], "#37524b", "MenuBoard", 0.18);
+  [-3.55, -2.65, -1.75, -0.85].forEach((x) =>
+    box(g, [0.62, 0.08, 0.04], [x, 2.9, -5], "#e7d5ae", "MenuLine"),
+  );
+  [-5.4, -1.8, 1.8, 5.4].forEach((x) => {
+    cylinder(g, [0.24, 0.42, 0.34, 20], [x, 3.82, -4.9], accent, "PendantShade", [0, 0, 0], 0.35);
+    cylinder(g, [0.035, 0.035, 0.65, 10], [x, 4.3, -4.9], "#3b3029", "PendantCord");
+  });
+  box(g, [2.2, 0.16, 0.5], [-6.75, 2.55, -5.02], wood, "LeftDecorShelf", 0.08);
+  [-7.35, -6.75, -6.15].forEach((x, index) => {
+    cylinder(
+      g,
+      [0.18, 0.24, 0.3, 12],
+      [x, 2.82, -4.98],
+      index % 2 ? "#6f8e67" : "#88a879",
+      `ShelfPlant${index}`,
+    );
+  });
+  box(g, [2.5, 0.06, 1.55], [-2.2, 0.035, 1.0], "#d5b986", "CafeRug", 0.2);
+  return g;
+};
+const diningSet = () => {
+  const g = groupNamed("DiningSet");
+  cylinder(g, [0.74, 0.74, 0.12, 24], [0, 0.78, 0], "#8b5a38", "DiningTable", [0, 0, 0], 0.18);
+  cylinder(g, [0.12, 0.18, 0.72, 16], [0, 0.38, 0], "#3e4f47", "TableBase", [0, 0, 0], 0.4);
+  [-0.82, 0.82].forEach((offset, chairIndex) => {
+    box(g, [0.62, 0.18, 0.58], [0, 0.46, offset], "#b98a58", `ChairSeat${chairIndex}`);
+    box(
+      g,
+      [0.58, 0.82, 0.14],
+      [0, 0.86, offset + (chairIndex ? 0.25 : -0.25)],
+      "#405e50",
+      `ChairBack${chairIndex}`,
+    );
+    [-0.2, 0.2].forEach((legX) => box(g, [0.09, 0.48, 0.09], [legX, 0.22, offset], "#4c382c", "ChairLeg"));
+  });
+  return g;
+};
+const cafeDoor = () => {
+  const g = groupNamed("CafeDoor");
+  box(g, [0.18, 2.65, 0.2], [-0.68, 1.32, 0], "#754b31", "DoorPostLeft", 0.04);
+  box(g, [0.18, 2.65, 0.2], [0.68, 1.32, 0], "#754b31", "DoorPostRight", 0.04);
+  box(g, [1.54, 0.2, 0.2], [0, 2.56, 0], "#b88955", "DoorHeader", 0.06);
+  box(g, [1.18, 2.28, 0.1], [0, 1.19, 0.02], "#507565", "DoorPanel", 0.06);
+  box(g, [0.78, 1.25, 0.04], [0, 1.58, -0.055], "#9fc5c0", "DoorWindow", 0.04);
+  box(g, [0.08, 0.42, 0.08], [0.43, 1.03, -0.1], "#d1a34e", "DoorHandle", 0.03);
+  box(g, [1.12, 0.34, 0.08], [0, 2.84, 0], "#3f5f53", "DoorSign", 0.04);
   return g;
 };
 const character = (name, palette) => {
@@ -378,6 +428,7 @@ const assets = {
   "cup-shelf.glb": cupShelf(),
   "cold-cup-shelf.glb": coldCupShelf(),
   "hot-water-dispenser.glb": dispenser(),
+  "water-dispenser.glb": dispenser(),
   "cold-water-dispenser.glb": coldWaterDispenser(),
   "ingredient-fridge.glb": fridge(),
   "ice-machine.glb": iceMachine(),
@@ -403,7 +454,79 @@ const assets = {
     pants: "#536173",
     shoes: "#342d2a",
   }),
+  "dining-set.glb": diningSet(),
+  "cafe-door.glb": cafeDoor(),
 };
+const shellPalettes = [
+  { floor: "#c99a73", wall: "#f1dfbd", cabinet: "#537565", wood: "#8d5b39", accent: "#c39359" },
+  { floor: "#b98d72", wall: "#e8d5c1", cabinet: "#526979", wood: "#754d3d", accent: "#b77d65" },
+  { floor: "#c3a47e", wall: "#eee1c4", cabinet: "#6a7253", wood: "#79583c", accent: "#c4a15f" },
+  { floor: "#a98270", wall: "#e4d4ca", cabinet: "#66556d", wood: "#67463b", accent: "#b58a70" },
+];
+const customerPalettes = [
+  {
+    apron: "#c3866c",
+    apronDark: "#875849",
+    shirt: "#f2d8b5",
+    skin: "#dca98c",
+    hair: "#5a3527",
+    pants: "#536173",
+    shoes: "#342d2a",
+  },
+  {
+    apron: "#6f8ca5",
+    apronDark: "#435d75",
+    shirt: "#e8eef2",
+    skin: "#e9b99b",
+    hair: "#2f2927",
+    pants: "#4c5364",
+    shoes: "#ddd5c9",
+  },
+  {
+    apron: "#8e7097",
+    apronDark: "#624b6c",
+    shirt: "#f1dcea",
+    skin: "#c98e70",
+    hair: "#241d1b",
+    pants: "#4c3d50",
+    shoes: "#2d292b",
+  },
+  {
+    apron: "#73946b",
+    apronDark: "#4c6948",
+    shirt: "#efe8cc",
+    skin: "#f0c5a3",
+    hair: "#8a5a38",
+    pants: "#475648",
+    shoes: "#eee4d5",
+  },
+  {
+    apron: "#c49355",
+    apronDark: "#8d6538",
+    shirt: "#f3e6d2",
+    skin: "#9f654e",
+    hair: "#171414",
+    pants: "#39495a",
+    shoes: "#2a2523",
+  },
+  {
+    apron: "#a9676e",
+    apronDark: "#75434b",
+    shirt: "#e6d9ef",
+    skin: "#ddb093",
+    hair: "#6c3c52",
+    pants: "#594759",
+    shoes: "#352d34",
+  },
+];
+customerPalettes.forEach((palette, index) => {
+  assets[`customer-${String(index + 1).padStart(2, "0")}.glb`] = character(`Customer${index + 1}`, palette);
+});
+for (let stage = 1; stage <= 12; stage += 1) {
+  assets[`cafe-shell-stage-${String(stage).padStart(2, "0")}.glb`] = cafeShell(
+    shellPalettes[(stage - 1) % shellPalettes.length],
+  );
+}
 await fs.mkdir(outputDirectory, { recursive: true });
 const exporter = new GLTFExporter();
 for (const [fileName, object] of Object.entries(assets)) {

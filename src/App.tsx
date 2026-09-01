@@ -73,6 +73,7 @@ const NicknameModal = ({
 const ProfileModal = ({ profile, close }: Readonly<{ profile: PlayerProfile | null; close: () => void }>) => {
   const bankGold = useGame(({ bankGold }) => bankGold);
   const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
+  const playerNickname = useGame(({ playerNickname }) => playerNickname);
   const [bgmEnabled, setBgmEnabled] = useState(() => soundPlayer.isMusicEnabled());
   const [musicVolume, setMusicVolume] = useState(() => soundPlayer.getMusicVolume());
   const [effectsVolume, setEffectsVolume] = useState(() => soundPlayer.getEffectsVolume());
@@ -87,11 +88,11 @@ const ProfileModal = ({ profile, close }: Readonly<{ profile: PlayerProfile | nu
           {profile?.avatarUrl ? (
             <img src={profile.avatarUrl} alt="소셜 프로필" referrerPolicy="no-referrer" />
           ) : (
-            (profile?.nickname ?? profile?.email ?? "G").slice(0, 1)
+            (profile?.nickname ?? playerNickname ?? profile?.email ?? "G").slice(0, 1)
           )}
         </span>
         <p>BARISTA PROFILE</p>
-        <h2>{profile?.nickname ?? "Guest Barista"}</h2>
+        <h2>{profile?.nickname ?? playerNickname ?? "Guest Barista"}</h2>
         <small>{profile?.email ?? "게스트 진행도는 이 기기에만 저장됩니다"}</small>
         <dl>
           <div>
@@ -106,6 +107,7 @@ const ProfileModal = ({ profile, close }: Readonly<{ profile: PlayerProfile | nu
         <section className="profile-audio">
           <div>
             <label htmlFor="bgm-volume">BGM</label>
+            <output>{Math.round(musicVolume * 100)}%</output>
             <button
               type="button"
               className={bgmEnabled ? "enabled" : ""}
@@ -164,6 +166,19 @@ const RecipeBook = () => {
   const screen = useGame(({ screen }) => screen);
   const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
   const discovered = useGame(({ discoveredRecipes }) => discoveredRecipes);
+  useEffect(() => {
+    const toggleRecipeBook = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.code === "KeyB" || event.key.toLowerCase() === "b" || event.key === "ㅠ") {
+        event.preventDefault();
+        setOpen((current) => !current);
+      }
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", toggleRecipeBook, true);
+    return () => window.removeEventListener("keydown", toggleRecipeBook, true);
+  }, []);
   return (
     <aside className={`recipe-book ${screen}`}>
       <button
@@ -175,15 +190,10 @@ const RecipeBook = () => {
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4V4Zm16 0h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4V4Z" />
         </svg>
+        <kbd>B</kbd>
       </button>
       {open ? (
-        <section className="recipe-book-modal" role="dialog" aria-modal="true" aria-label="레시피 도감">
-          <button
-            className="modal-backdrop"
-            type="button"
-            aria-label="도감 닫기"
-            onClick={() => setOpen(false)}
-          />
+        <section className="recipe-book-modal" role="dialog" aria-label="레시피 도감">
           <div>
             <header>
               <div>
@@ -207,6 +217,9 @@ const RecipeBook = () => {
                     <small>STAGE {menu.stage}</small>
                     <h3>{found ? menu.name : available ? menu.name : "???"}</h3>
                     <p>{found ? menu.recipe : "조합에 성공하면 제조법이 공개됩니다"}</p>
+                    {found ? (
+                      <strong className="recipe-price">판매가 {menu.reward.toLocaleString("ko-KR")}원</strong>
+                    ) : null}
                   </article>
                 );
               })}
@@ -306,7 +319,7 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
         </div>
         <p>WELCOME TO</p>
         <h1>Coffee Town</h1>
-        <span>09:00부터 21:00까지, 오늘의 영업일을 선택하세요</span>
+        <span>영업 시간 : 09:00 ~ 21:00</span>
         <div className="stage-picker">
           {stages.map((stage) => (
             <button
@@ -318,7 +331,7 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
             >
               <b>{stage.id}</b>
               <span>{stage.name}</span>
-              <small>{stage.id > unlockedStage ? "LOCKED" : `NEW · ${labels[stage.unlock]}`}</small>
+              <small>{stage.id > unlockedStage ? "LOCKED" : "PLAYABLE"}</small>
             </button>
           ))}
         </div>
@@ -381,6 +394,7 @@ const Shift = () => {
   const finish = useGame(({ finish }) => finish);
   const exit = useGame(({ exit }) => exit);
   const select = useGame(({ select }) => select);
+  const discard = useGame(({ discard }) => discard);
   const interactNearby = useGame(({ interactNearby }) => interactNearby);
   const nearbyStation = useGame(({ nearbyStation }) => nearbyStation);
   const combine = useGame(({ combine }) => combine);
@@ -388,20 +402,36 @@ const Shift = () => {
   const fridgeOpen = useGame(({ fridgeOpen }) => fridgeOpen);
   const closeFridge = useGame(({ closeFridge }) => closeFridge);
   const takeFromFridge = useGame(({ takeFromFridge }) => takeFromFridge);
+  const waterOpen = useGame(({ waterOpen }) => waterOpen);
+  const closeWater = useGame(({ closeWater }) => closeWater);
+  const takeWater = useGame(({ takeWater }) => takeWater);
   const feverTarget = Math.max(3, 5 - Math.floor(shift.upgrades.feverCharge / 2));
   const previousWork = useRef(shift.activeWork);
   const previousReady = useRef(0);
   const previousOrders = useRef(shift.orderSequence);
+  const [menuIntroOpen, setMenuIntroOpen] = useState(true);
+  const newlyAvailableMenus = menuCatalog.filter(({ stage }) => stage === shift.stageId);
   useEffect(() => {
+    if (menuIntroOpen) return;
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [tick]);
+  }, [menuIntroOpen, tick]);
   useEffect(() => {
     soundPlayer.startMusic(shift.stageId);
   }, [shift.stageId]);
   useEffect(() => {
     soundPlayer.setFever(shift.fever > 0);
   }, [shift.fever]);
+  useEffect(() => {
+    if (!waterOpen) return;
+    const chooseWater = (event: KeyboardEvent) => {
+      if (event.key === "1") takeWater("hot_water");
+      if (event.key === "2") takeWater("cold_water");
+      if (event.key === "Escape") closeWater();
+    };
+    window.addEventListener("keydown", chooseWater);
+    return () => window.removeEventListener("keydown", chooseWater);
+  }, [closeWater, takeWater, waterOpen]);
   useEffect(() => {
     if (shift.activeWork && previousWork.current !== shift.activeWork) soundPlayer.playMachineStart();
     previousWork.current = shift.activeWork;
@@ -432,6 +462,26 @@ const Shift = () => {
   return (
     <main className={`game-screen ${shift.fever ? "fever" : ""}`}>
       <CafeScene />
+      {menuIntroOpen ? (
+        <section className="menu-unlock-modal" role="dialog" aria-modal="true" aria-label="새 메뉴 안내">
+          <div>
+            <p>STAGE {shift.stageId} · MENU UPDATE</p>
+            <h2>{shift.stageId === 1 ? "첫 영업 메뉴" : "새 메뉴가 열렸습니다"}</h2>
+            <div>
+              {newlyAvailableMenus.map((menu) => (
+                <article key={menu.id}>
+                  <small>NEW MENU</small>
+                  <strong>{menu.name}</strong>
+                  <span>조합에 성공하면 레시피 도감에 제조법이 기록됩니다.</span>
+                </article>
+              ))}
+            </div>
+            <button type="button" onClick={() => setMenuIntroOpen(false)}>
+              영업 시작
+            </button>
+          </div>
+        </section>
+      ) : null}
       <header className="hud">
         <div>
           <small>BUSINESS TIME</small>
@@ -453,15 +503,21 @@ const Shift = () => {
         <small>숫자키 1~9 선택</small>
         {shift.inventory.length ? (
           shift.inventory.map((item, index) => (
-            <button
-              className={item.uid === selectedUid ? "selected" : ""}
-              key={item.uid}
-              onClick={() => select(item.uid)}
-              type="button"
-            >
-              <b>{index + 1}</b>
-              {labels[item.itemId]}
-            </button>
+            <div className={`inventory-item ${item.uid === selectedUid ? "selected" : ""}`} key={item.uid}>
+              <button className="inventory-select" onClick={() => select(item.uid)} type="button">
+                <b>{index + 1}</b>
+                {labels[item.itemId]}
+              </button>
+              <button
+                className="inventory-remove"
+                type="button"
+                aria-label={`${labels[item.itemId]} 버리기`}
+                title="버리기"
+                onClick={() => discard(item.uid)}
+              >
+                ×
+              </button>
+            </div>
           ))
         ) : (
           <span>비어 있음</span>
@@ -498,6 +554,30 @@ const Shift = () => {
               ))}
             </div>
             <button className="fridge-close" type="button" onClick={closeFridge}>
+              닫기 · ESC
+            </button>
+          </div>
+        </section>
+      ) : null}
+      {waterOpen ? (
+        <section className="fridge-picker water-picker" role="dialog" aria-modal="true" aria-label="정수기">
+          <div>
+            <p>WATER DISPENSER</p>
+            <h2>물을 선택하세요</h2>
+            <span>숫자키 1, 2 또는 터치로 선택할 수 있습니다.</span>
+            <div className="fridge-grid water-grid">
+              <button type="button" onClick={() => takeWater("hot_water")}>
+                <i>1</i>
+                <b>온수</b>
+                <small>뜨거운 음료용</small>
+              </button>
+              <button type="button" onClick={() => takeWater("cold_water")}>
+                <i>2</i>
+                <b>냉수</b>
+                <small>차가운 음료용</small>
+              </button>
+            </div>
+            <button className="fridge-close" type="button" onClick={closeWater}>
               닫기 · ESC
             </button>
           </div>

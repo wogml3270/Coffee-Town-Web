@@ -34,6 +34,7 @@ type GameStore = Readonly<{
   selectedUid: string | null;
   nearbyStation: StationId | null;
   fridgeOpen: boolean;
+  waterOpen: boolean;
   bankGold: number;
   upgrades: Upgrades;
   selectedStage: number;
@@ -63,11 +64,14 @@ type GameStore = Readonly<{
   setStage: (stage: number) => void;
   tick: () => void;
   select: (uid: string | null) => void;
+  discard: (uid: string) => void;
   interact: (station: StationId) => void;
   interactNearby: () => void;
   combine: () => void;
   setNearbyStation: (station: StationId | null) => void;
   closeFridge: () => void;
+  closeWater: () => void;
+  takeWater: (itemId: "hot_water" | "cold_water") => void;
   takeFromFridge: (itemId: ItemId) => void;
   buyUpgrade: (upgrade: UpgradeId) => void;
 }>;
@@ -76,7 +80,8 @@ export const maxUpgradeLevel = (upgrade: UpgradeId) => (upgrade === "automation"
 export const upgradeCost = (upgrade: UpgradeId, level: number) =>
   upgrade === "automation"
     ? 50000
-    : { speed: 180, movement: 140, feverCharge: 260, feverDuration: 240, tips: 220 }[upgrade] * (level + 1);
+    : { speed: 8000, movement: 6000, feverCharge: 12000, feverDuration: 10000, tips: 9000 }[upgrade] *
+      (level + 1);
 const mergeUpgrades = (local: Upgrades, cloud: Partial<Upgrades>): Upgrades =>
   Object.fromEntries(
     Object.entries(local).map(([id, level]) => [
@@ -101,6 +106,7 @@ export const useGame = create<GameStore>()(
       selectedUid: null,
       nearbyStation: null,
       fridgeOpen: false,
+      waterOpen: false,
       bankGold: 0,
       upgrades: defaultUpgrades,
       selectedStage: 1,
@@ -131,6 +137,7 @@ export const useGame = create<GameStore>()(
           selectedUid: null,
           nearbyStation: null,
           fridgeOpen: false,
+          waterOpen: false,
         }),
       resetGuestProgress: () =>
         set({
@@ -145,6 +152,7 @@ export const useGame = create<GameStore>()(
           selectedUid: null,
           nearbyStation: null,
           fridgeOpen: false,
+          waterOpen: false,
         }),
       start: () =>
         set(({ upgrades, selectedStage }) => ({
@@ -153,6 +161,7 @@ export const useGame = create<GameStore>()(
           selectedUid: null,
           nearbyStation: null,
           fridgeOpen: false,
+          waterOpen: false,
         })),
       exit: () =>
         set(({ screen, shift, bankGold, upgrades, selectedStage }) => ({
@@ -162,6 +171,7 @@ export const useGame = create<GameStore>()(
           selectedUid: null,
           nearbyStation: null,
           fridgeOpen: false,
+          waterOpen: false,
         })),
       finish: () =>
         set(({ shift, bankGold, unlockedStage }) => ({
@@ -176,9 +186,19 @@ export const useGame = create<GameStore>()(
         set(({ unlockedStage }) => ({ selectedStage: Math.min(selectedStage, unlockedStage) })),
       tick: () => set(({ shift }) => ({ shift: tick(shift) })),
       select: (selectedUid) => set({ selectedUid }),
+      discard: (uid) =>
+        set(({ shift, selectedUid }) => ({
+          shift: {
+            ...shift,
+            inventory: shift.inventory.filter((item) => item.uid !== uid),
+            notice: "재료를 버렸습니다",
+          },
+          selectedUid: selectedUid === uid ? null : selectedUid,
+        })),
       interact: (station) =>
         set(({ shift, selectedUid }) => {
           if (station === "fridge") return { fridgeOpen: true };
+          if (station === "water") return { waterOpen: true };
           const produced = interactStation(shift, station, selectedUid);
           const next = autoCombine(produced, get().combinationRecipes);
           const selectedStillExists = next.inventory.some(({ uid }) => uid === selectedUid);
@@ -209,6 +229,16 @@ export const useGame = create<GameStore>()(
         }),
       setNearbyStation: (nearbyStation) => set({ nearbyStation }),
       closeFridge: () => set({ fridgeOpen: false }),
+      closeWater: () => set({ waterOpen: false }),
+      takeWater: (itemId) =>
+        set(({ shift, discoveredRecipes, combinationRecipes }) => {
+          const next = autoCombine(takeFridgeIngredient(shift, itemId), combinationRecipes);
+          return {
+            shift: { ...next, notice: itemId === "hot_water" ? "온수를 받았습니다" : "냉수를 받았습니다" },
+            discoveredRecipes: mergeDiscoveries(discoveredRecipes, next),
+            waterOpen: false,
+          };
+        }),
       takeFromFridge: (itemId) =>
         set(({ shift, discoveredRecipes, combinationRecipes }) => {
           const next = autoCombine(takeFridgeIngredient(shift, itemId), combinationRecipes);

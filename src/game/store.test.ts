@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exitEarnings, unlockedAfterFullDay } from "./store";
+import { exitEarnings, unlockedAfterFullDay, useGame } from "./store";
 
 describe("exitEarnings", () => {
   it("영업 중 나가면 현재까지 획득한 골드를 정산한다", () => {
@@ -20,5 +20,26 @@ describe("business day progression", () => {
   });
   it("이미 앞선 스테이지를 다시 마감해도 해금 단계를 낮추지 않는다", () => {
     expect(unlockedAfterFullDay(8, 2)).toBe(8);
+  });
+});
+
+describe("authenticated progress isolation", () => {
+  it("replaces guest gold and upgrades with the signed-in account values", () => {
+    useGame.setState({
+      bankGold: 9999,
+      upgrades: { speed: 5, movement: 5, feverCharge: 5, feverDuration: 5, tips: 5, automation: 1 },
+    });
+
+    useGame.getState().hydrateProgress(120, 2, { speed: 1 }, []);
+
+    expect(useGame.getState().bankGold).toBe(120);
+    expect(useGame.getState().upgrades).toEqual({
+      speed: 1,
+      movement: 0,
+      feverCharge: 0,
+      feverDuration: 0,
+      tips: 0,
+      automation: 0,
+    });
   });
 });

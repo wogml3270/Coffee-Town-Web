@@ -23,6 +23,7 @@ export type ShiftState = Readonly<{
   fever: number;
   orderSequence: number;
   order: Order;
+  orders: readonly Order[];
   inventory: readonly InventoryItem[];
   stations: Readonly<Record<StationId, StationRuntime>>;
   activeWork: StationId | null;
@@ -44,7 +45,6 @@ const stationIds: readonly StationId[] = [
   "grinder",
   "espresso",
   "cups",
-  "coldCups",
   "water",
   "coldWater",
   "fridge",
@@ -65,6 +65,16 @@ const makeOrder = (sequence: number, stageId: number, previous?: DrinkId): Order
   const candidates = menu.length > 1 ? menu.filter(({ id }) => id !== previous) : menu;
   const selected = candidates[Math.floor(Math.random() * candidates.length)] ?? menu[0]!;
   return { id: sequence, itemId: selected.id, name: selected.name, reward: selected.reward };
+};
+const makeOrderQueue = (sequence: number, stageId: number, previous?: DrinkId): readonly Order[] => {
+  const orders: Order[] = [];
+  let last = previous;
+  for (let index = 0; index < 3; index += 1) {
+    const order = makeOrder(sequence + index, stageId, last);
+    orders.push(order);
+    last = order.itemId;
+  }
+  return orders;
 };
 export const businessClock = (remainingSeconds: number) => {
   const totalMinutes = 540 + (360 - Math.max(0, Math.min(360, remainingSeconds))) * 2;
@@ -101,13 +111,15 @@ const begin = (
 
 export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1): ShiftState => {
   const stage = stages.find(({ id }) => id === stageId) ?? stages[0]!;
+  const orders = makeOrderQueue(0, stage.id);
   return {
     time: 360,
     gold: 0,
     combo: 0,
     fever: 0,
     orderSequence: 0,
-    order: makeOrder(0, stage.id),
+    order: orders[0]!,
+    orders,
     inventory: [],
     stations: emptyStations(),
     activeWork: null,
@@ -166,14 +178,14 @@ export const interactStation = (
     sparkling: { output: "sparkling_water", seconds: 3 },
     coldBrew: { output: "cold_brew_concentrate", seconds: 5 },
   };
-  const instant: Partial<Record<StationId, ItemId>> = { cups: "hot_cup", coldCups: "cold_cup" };
+  const instant: Partial<Record<StationId, ItemId>> = { cups: "cup" };
   if (instant[station])
     return state.inventory.length >= inventoryLimit
       ? { ...state, notice: "작업대가 가득 찼습니다" }
       : {
           ...state,
           inventory: add(state, instant[station]!),
-          notice: `${station === "cups" ? "따뜻한 컵" : "아이스 컵"}을 꺼냈습니다`,
+          notice: "컵을 꺼냈습니다",
         };
   const generator = generators[station];
   if (generator) return begin(state, station, generator.output, generator.seconds);
@@ -191,6 +203,27 @@ export const takeFridgeIngredient = (state: ShiftState, itemId: ItemId): ShiftSt
     ? { ...state, notice: "작업대가 가득 찼습니다" }
     : { ...state, inventory: add(state, itemId), notice: "냉장고에서 재료를 꺼냈습니다" };
 
+const recipeOutputReaches = (
+  output: ItemId,
+  target: ItemId,
+  recipeBook: readonly CombinationRecipe[],
+  visited: ReadonlySet<ItemId> = new Set(),
+): boolean => {
+  if (output === target) return true;
+  if (visited.has(output)) return false;
+  const nextVisited = new Set(visited).add(output);
+  return recipeBook.some(
+    (recipe) =>
+      recipe.inputs.includes(output) && recipeOutputReaches(recipe.output, target, recipeBook, nextVisited),
+  );
+};
+
+const preferCurrentOrderPath = (
+  candidates: readonly CombinationRecipe[],
+  target: ItemId,
+  recipeBook: readonly CombinationRecipe[],
+) => candidates.find(({ output }) => recipeOutputReaches(output, target, recipeBook)) ?? candidates[0];
+
 export const combineSelected = (
   state: ShiftState,
   selectedUid: string | null,
@@ -198,16 +231,18 @@ export const combineSelected = (
 ): ShiftState => {
   const selected = state.inventory.find(({ uid: itemUid }) => itemUid === selectedUid);
   if (!selected) return { ...state, notice: "먼저 조합할 재료를 선택하세요" };
-  const recipe = recipeBook.find(
+  const candidates = recipeBook.filter(
     ({ inputs }) =>
       inputs.includes(selected.itemId) &&
       state.inventory.some(
         ({ uid: otherUid, itemId }) => otherUid !== selected.uid && inputs.includes(itemId),
       ),
   );
+  const recipe = preferCurrentOrderPath(candidates, state.order.itemId, recipeBook);
   if (!recipe) return { ...state, notice: "선택한 재료와 조합 가능한 재료가 없습니다" };
+  const partnerItemId = recipe.inputs[0] === selected.itemId ? recipe.inputs[1] : recipe.inputs[0];
   const partner = state.inventory.find(
-    ({ uid: otherUid, itemId }) => otherUid !== selected.uid && recipe.inputs.includes(itemId),
+    ({ uid: otherUid, itemId }) => otherUid !== selected.uid && itemId === partnerItemId,
   );
   if (!partner) return state;
   const inventory = without(without(state.inventory, selected.uid), partner.uid);
@@ -223,13 +258,14 @@ export const autoCombine = (
   recipeBook: readonly CombinationRecipe[] = recipes,
 ): ShiftState => {
   if (!state.upgrades.automation) return state;
-  const recipe = recipeBook.find(({ inputs }) =>
+  const candidates = recipeBook.filter(({ inputs }) =>
     inputs.every((input, index) =>
       state.inventory.some(
         ({ itemId }, itemIndex) => itemId === input && (inputs[0] !== inputs[1] || itemIndex >= index),
       ),
     ),
   );
+  const recipe = preferCurrentOrderPath(candidates, state.order.itemId, recipeBook);
   if (!recipe) return state;
   const first = state.inventory.find(({ itemId }) => itemId === recipe.inputs[0]);
   const second = state.inventory.find(
@@ -255,6 +291,10 @@ export const serve = (state: ShiftState, uidToServe: string): ShiftState => {
   const reward = Math.round(
     state.order.reward * multiplier * state.rewardMultiplier * (1 + state.upgrades.tips * 0.06),
   );
+  const remainingOrders = state.orders.slice(1);
+  const previous = remainingOrders.at(-1)?.itemId ?? state.order.itemId;
+  const nextOrder = makeOrder(next + remainingOrders.length, state.stageId, previous);
+  const orders = [...remainingOrders, nextOrder];
   return {
     ...state,
     inventory: without(state.inventory, item.uid),
@@ -262,7 +302,8 @@ export const serve = (state: ShiftState, uidToServe: string): ShiftState => {
     combo,
     fever,
     orderSequence: next,
-    order: makeOrder(next, state.stageId, state.order.itemId),
+    order: orders[0]!,
+    orders,
     notice: fever > state.fever ? "FEVER MODE · 속도 상승 · 이동 작업" : `+${reward}G`,
   };
 };

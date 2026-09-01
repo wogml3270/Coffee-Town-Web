@@ -18,4 +18,15 @@ describe("cafe counter collision", () => {
     expect(result.x).toBe(1);
     expect(result.z).toBe(2.68);
   });
+
+  it("blocks the customer dining tables", () => {
+    const result = resolveCafeMovement({ x: -3.3, z: 1.35 }, { x: 0, z: 0.3 });
+    expect(result.z).toBe(1.35);
+    expect(isCafePositionBlocked({ x: -3.3, z: 3.2 })).toBe(true);
+  });
+
+  it("lets a character escape if a layout change places it inside a collider", () => {
+    const result = resolveCafeMovement({ x: -3.3, z: 3.2 }, { x: 0, z: -0.3 });
+    expect(result.z).toBeCloseTo(2.9);
+  });
 });
