@@ -36,13 +36,15 @@ create unique index if not exists profiles_nickname_unique on public.profiles (l
 create table if not exists public.user_progress (
   user_id uuid primary key references auth.users(id) on delete cascade,
   gold bigint not null default 0 check (gold >= 0),
-  unlocked_stage integer not null default 1 check (unlocked_stage between 1 and 12),
+  unlocked_stage integer not null default 1 check (unlocked_stage between 1 and 15),
   upgrades jsonb not null default '{}'::jsonb,
+  discovered_recipes jsonb not null default '[]'::jsonb,
   updated_at timestamptz not null default now()
 );
 
 alter table public.user_progress add column if not exists unlocked_stage integer not null default 1;
 alter table public.user_progress add column if not exists upgrades jsonb not null default '{}'::jsonb;
+alter table public.user_progress add column if not exists discovered_recipes jsonb not null default '[]'::jsonb;
 
 alter table public.profiles enable row level security;
 alter table public.user_progress enable row level security;

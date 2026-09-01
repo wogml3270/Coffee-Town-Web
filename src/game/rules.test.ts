@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ItemId, StationId } from "./catalog";
-import { autoCombine, combineSelected, createShift, interactStation, takeFridgeIngredient, tick, type ShiftState } from "./rules";
+import { autoCombine, businessClock, combineSelected, createShift, interactStation, takeFridgeIngredient, tick, type ShiftState } from "./rules";
+import { menuCatalog } from "./catalog";
 
 const advance = (state: ShiftState, seconds: number) => Array.from({ length: seconds }).reduce<ShiftState>((current) => tick(current), state);
 const run = (state: ShiftState, station: StationId, selectedUid: string | null = null) => {
@@ -15,6 +16,16 @@ const assemble = (state: ShiftState, first: ItemId, second: ItemId) => {
 };
 
 describe("timed cafe production", () => {
+  it("runs a six minute business day from 09:00 to 21:00",()=>{
+    expect(businessClock(360)).toBe("09:00");
+    expect(businessClock(180)).toBe("15:00");
+    expect(businessClock(0)).toBe("21:00");
+  });
+
+  it("unlocks exactly one of fifteen cafe drinks per stage",()=>{
+    expect(menuCatalog).toHaveLength(15);
+    expect(new Set(menuCatalog.map(({stage})=>stage)).size).toBe(15);
+  });
   it("locks a machine until processing completes and is immediately reusable after collection", () => {
     const started = interactStation(createShift(), "grinder", null);
     expect(started.activeWork).toBe("grinder");

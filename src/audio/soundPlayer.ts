@@ -1,4 +1,12 @@
-type AudioMode = "ambient" | "fever";
+const stageTracks = [
+  "/assets/audio/hyp-spring-has-come.mp3",
+  "/assets/audio/hyp-ggoomma-song.mp3",
+  "/assets/audio/hyp-sugar-in-my-coffee.mp3",
+] as const;
+const lobbyTrack = "/assets/audio/hyp-full-of-sunshine.mp3";
+const musicPreferenceKey = "coffee-town-bgm-enabled";
+
+const trackForStage = (stageId: number) => stageTracks[Math.min(stageTracks.length - 1, Math.floor((Math.max(1, stageId) - 1) / 4))] ?? stageTracks[0];
 
 const audioContext = () => new AudioContext();
 const note = (context: AudioContext, destination: AudioNode, frequency: number, start: number, duration: number, volume: number, type: OscillatorType = "sine") => {
@@ -17,8 +25,10 @@ const note = (context: AudioContext, destination: AudioNode, frequency: number, 
 export const createSoundPlayer = () => {
   let context: AudioContext | null = null;
   let master: GainNode | null = null;
-  let musicTimer: number | null = null;
-  let mode: AudioMode = "ambient";
+  let music: HTMLAudioElement | null = null;
+  let musicEnabled = localStorage.getItem(musicPreferenceKey) !== "false";
+  let stageId = 1;
+  let fever = false;
   let stepAt = 0;
   const ensure = () => {
     context ??= audioContext();
@@ -26,31 +36,49 @@ export const createSoundPlayer = () => {
     if (context.state === "suspended") void context.resume();
     return { context, master };
   };
-  const playMusicBar = () => {
-    const audio = ensure();
-    const now = audio.context.currentTime + 0.03;
-    const progression = mode === "fever" ? [392, 493.88, 587.33, 783.99] : [196, 246.94, 293.66, 220];
-    progression.forEach((root, index) => {
-      const at = now + index * (mode === "fever" ? 0.23 : 0.58);
-      note(audio.context, audio.master, root, at, mode === "fever" ? .2 : .48, mode === "fever" ? .045 : .025, "triangle");
-      note(audio.context, audio.master, root * 1.5, at + .05, mode === "fever" ? .16 : .42, .012, "sine");
-    });
+  const applyMusicMode = () => {
+    if (!music) return;
+    music.playbackRate = fever ? 1.08 : 1;
+    music.volume = fever ? 0.44 : 0.32;
   };
-  const startMusic = () => {
-    ensure();
-    if (musicTimer !== null) return;
-    playMusicBar();
-    musicTimer = window.setInterval(playMusicBar, mode === "fever" ? 1050 : 2450);
+  const playTrack = (source: string) => {
+    if (!music || !music.src.endsWith(source)) {
+      music?.pause();
+      music = new Audio(source);
+      music.loop = true;
+      music.preload = "auto";
+      music.autoplay = true;
+    }
+    applyMusicMode();
+    if (musicEnabled) void music.play().catch(() => undefined);
   };
-  const restartMusic = () => { if (musicTimer !== null) window.clearInterval(musicTimer); musicTimer = null; startMusic(); };
-  const setFever = (active: boolean) => { const next: AudioMode = active ? "fever" : "ambient"; if (mode === next) return; mode = next; restartMusic(); };
+  const startMusic = (nextStageId = stageId) => {
+    stageId = nextStageId;
+    fever = false;
+    playTrack(trackForStage(stageId));
+  };
+  const startLobbyMusic = () => { fever = false; playTrack(lobbyTrack); };
+  const setFever = (active: boolean) => {
+    if (fever === active) return;
+    fever = active;
+    applyMusicMode();
+    if (active) effect([523.25, 659.25, 783.99, 1046.5], .11, .06, "square");
+  };
   const effect = (frequencies: readonly number[], duration = .12, volume = .055, type: OscillatorType = "square") => {
     const audio = ensure(); const now = audio.context.currentTime;
     frequencies.forEach((frequency, index) => note(audio.context, audio.master, frequency, now + index * duration * .55, duration, volume, type));
   };
   return {
     startMusic,
-    stopMusic: () => { if (musicTimer !== null) window.clearInterval(musicTimer); musicTimer = null; },
+    startLobbyMusic,
+    stopMusic: () => music?.pause(),
+    isMusicEnabled: () => musicEnabled,
+    setMusicEnabled: (enabled: boolean) => {
+      musicEnabled = enabled;
+      localStorage.setItem(musicPreferenceKey, String(enabled));
+      if (enabled) void music?.play().catch(() => undefined);
+      else music?.pause();
+    },
     setFever,
     playUi: () => effect([440, 620], .055, .025, "sine"),
     playMachineStart: () => effect([110, 145, 190], .16, .045, "sawtooth"),

@@ -1,5 +1,5 @@
-import type { DrinkId, InventoryItem, ItemId, Order, StationId } from "./catalog";
-import { recipes, stages } from "./catalog";
+import type { CombinationRecipe, DrinkId, InventoryItem, ItemId, Order, StationId } from "./catalog";
+import { menuCatalog, recipes, stages } from "./catalog";
 
 export type Upgrades = Readonly<{ speed: number; movement: number; feverCharge: number; feverDuration: number; tips: number; automation: number }>;
 export type StationPhase = "idle" | "processing" | "ready";
@@ -7,20 +7,17 @@ export type StationRuntime = Readonly<{ phase: StationPhase; remaining: number; 
 export type ShiftState = Readonly<{
   time: number; gold: number; combo: number; fever: number; orderSequence: number; order: Order;
   inventory: readonly InventoryItem[]; stations: Readonly<Record<StationId, StationRuntime>>;
-  activeWork: StationId | null; notice: string; upgrades: Upgrades; stageId: number; targetOrders: number; rewardMultiplier: number;
+  activeWork: StationId | null; notice: string; upgrades: Upgrades; stageId: number; rewardMultiplier: number;
 }>;
 
 export const defaultUpgrades: Upgrades = { speed: 0, movement: 0, feverCharge: 0, feverDuration: 0, tips: 0, automation: 0 };
-const stationIds: readonly StationId[] = ["grinder", "espresso", "cups", "coldCups", "water", "fridge", "steam", "ice", "sparkling", "lemon", "grapefruit", "serve"];
+const stationIds: readonly StationId[] = ["grinder","espresso","cups","coldCups","water","coldWater","fridge","steam","ice","sparkling","coldBrew","blender","serve"];
 const idle = (): StationRuntime => ({ phase: "idle", remaining: 0, total: 0, output: null });
 const emptyStations = (): Record<StationId, StationRuntime> => Object.fromEntries(stationIds.map((id) => [id, idle()])) as Record<StationId, StationRuntime>;
 const uid = (): string => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
-const drinkData: Readonly<Record<DrinkId, Omit<Order, "id" | "itemId">>> = {
-  americano: { name: "따뜻한 아메리카노", reward: 100 }, latte: { name: "카페라떼", reward: 130 },
-  lemonade: { name: "레몬에이드", reward: 160 }, grapefruitade: { name: "자몽에이드", reward: 180 },
-};
-const stageMenu = (stageId: number): readonly DrinkId[] => stageId >= 3 ? ["americano", "latte", "lemonade", "grapefruitade"] : stageId >= 2 ? ["americano", "latte", "lemonade"] : ["americano", "latte"];
-const makeOrder = (sequence: number, stageId: number, previous?: DrinkId): Order => { const menu = stageMenu(stageId); const candidates = menu.length > 1 ? menu.filter((itemId) => itemId !== previous) : menu; const itemId = candidates[Math.floor(Math.random() * candidates.length)]!; return { id: sequence, itemId, ...drinkData[itemId] }; };
+const stageMenu = (stageId: number) => menuCatalog.filter(({ stage }) => stage <= stageId);
+const makeOrder = (sequence: number, stageId: number, previous?: DrinkId): Order => { const menu = stageMenu(stageId); const candidates = menu.length > 1 ? menu.filter(({ id }) => id !== previous) : menu; const selected = candidates[Math.floor(Math.random() * candidates.length)] ?? menu[0]!; return { id: sequence, itemId: selected.id, name: selected.name, reward: selected.reward }; };
+export const businessClock = (remainingSeconds:number) => { const totalMinutes=540+(360-Math.max(0,Math.min(360,remainingSeconds)))*2; const hours=Math.min(21,Math.floor(totalMinutes/60)); const minutes=hours===21?0:totalMinutes%60; return `${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}`; };
 const inventoryLimit = 9;
 const add = (state: ShiftState, itemId: ItemId): readonly InventoryItem[] => state.inventory.length >= inventoryLimit ? state.inventory : [...state.inventory, { uid: uid(), itemId }];
 const without = (inventory: readonly InventoryItem[], uidToRemove: string) => inventory.filter(({ uid: itemUid }) => itemUid !== uidToRemove);
@@ -33,7 +30,7 @@ const begin = (state: ShiftState, station: StationId, output: ItemId, seconds: n
 
 export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1): ShiftState => {
   const stage = stages.find(({ id }) => id === stageId) ?? stages[0]!;
-  return { time: stage.time, gold: 0, combo: 0, fever: 0, orderSequence: 0, order: makeOrder(0, stage.id), inventory: [], stations: emptyStations(), activeWork: null, notice: "설비 앞으로 이동해 작업을 시작하세요", upgrades, stageId: stage.id, targetOrders: stage.target, rewardMultiplier: stage.rewardMultiplier };
+  return { time: 360, gold: 0, combo: 0, fever: 0, orderSequence: 0, order: makeOrder(0, stage.id), inventory: [], stations: emptyStations(), activeWork: null, notice: "09:00 · 오늘의 영업을 시작합니다", upgrades, stageId: stage.id, rewardMultiplier: stage.rewardMultiplier };
 };
 
 export const tick = (state: ShiftState): ShiftState => {
@@ -58,7 +55,7 @@ export const interactStation = (state: ShiftState, station: StationId, selectedU
   if (station === "serve") return selectedUid ? serve(state, selectedUid) : { ...state, notice: "완성된 음료를 선택하세요" };
   const selected = state.inventory.find(({ uid: itemUid }) => itemUid === selectedUid);
   const generators: Partial<Record<StationId, { output: ItemId; seconds: number }>> = {
-    grinder: { output: "ground_coffee", seconds: 4 }, water: { output: "hot_water", seconds: 3 }, ice: { output: "ice", seconds: 4 }, sparkling: { output: "sparkling_water", seconds: 3 },
+    grinder:{output:"ground_coffee",seconds:4},water:{output:"hot_water",seconds:3},coldWater:{output:"cold_water",seconds:2},ice:{output:"ice",seconds:4},sparkling:{output:"sparkling_water",seconds:3},coldBrew:{output:"cold_brew_concentrate",seconds:5},
   };
   const instant: Partial<Record<StationId, ItemId>> = { cups: "hot_cup", coldCups: "cold_cup" };
   if (instant[station]) return state.inventory.length >= inventoryLimit ? { ...state, notice: "작업대가 가득 찼습니다" } : { ...state, inventory: add(state, instant[station]!), notice: `${station === "cups" ? "따뜻한 컵" : "아이스 컵"}을 꺼냈습니다` };
@@ -66,6 +63,7 @@ export const interactStation = (state: ShiftState, station: StationId, selectedU
   if (generator) return begin(state, station, generator.output, generator.seconds);
   if (station === "espresso" && selected?.itemId === "ground_coffee") return begin(state, station, "espresso", 7, without(state.inventory, selected.uid));
   if (station === "steam" && selected?.itemId === "milk") return begin(state, station, "steamed_milk", 6, without(state.inventory, selected.uid));
+  if (station === "blender" && selected?.itemId === "blended_base_3") return begin(state, station, "mocha_blended", 7, without(state.inventory, selected.uid));
   return { ...state, notice: "선택한 재료에는 사용할 수 없는 설비입니다" };
 };
 
@@ -73,10 +71,10 @@ export const takeFridgeIngredient = (state: ShiftState, itemId: ItemId): ShiftSt
   ? { ...state, notice: "작업대가 가득 찼습니다" }
   : { ...state, inventory: add(state, itemId), notice: "냉장고에서 재료를 꺼냈습니다" };
 
-export const combineSelected = (state: ShiftState, selectedUid: string | null): ShiftState => {
+export const combineSelected = (state: ShiftState, selectedUid: string | null, recipeBook: readonly CombinationRecipe[] = recipes): ShiftState => {
   const selected = state.inventory.find(({ uid: itemUid }) => itemUid === selectedUid);
   if (!selected) return { ...state, notice: "먼저 조합할 재료를 선택하세요" };
-  const recipe = recipes.find(({ inputs }) => inputs.includes(selected.itemId) && state.inventory.some(({ uid: otherUid, itemId }) => otherUid !== selected.uid && inputs.includes(itemId)));
+  const recipe = recipeBook.find(({ inputs }) => inputs.includes(selected.itemId) && state.inventory.some(({ uid: otherUid, itemId }) => otherUid !== selected.uid && inputs.includes(itemId)));
   if (!recipe) return { ...state, notice: "선택한 재료와 조합 가능한 재료가 없습니다" };
   const partner = state.inventory.find(({ uid: otherUid, itemId }) => otherUid !== selected.uid && recipe.inputs.includes(itemId));
   if (!partner) return state;
@@ -84,15 +82,15 @@ export const combineSelected = (state: ShiftState, selectedUid: string | null): 
   return { ...state, inventory: [...inventory, { uid: uid(), itemId: recipe.output }], notice: "음료 조합 성공" };
 };
 
-export const autoCombine = (state: ShiftState): ShiftState => {
+export const autoCombine = (state: ShiftState, recipeBook: readonly CombinationRecipe[] = recipes): ShiftState => {
   if (!state.upgrades.automation) return state;
-  const recipe = recipes.find(({ inputs }) => inputs.every((input, index) => state.inventory.some(({ itemId }, itemIndex) => itemId === input && (inputs[0] !== inputs[1] || itemIndex >= index))));
+  const recipe = recipeBook.find(({ inputs }) => inputs.every((input, index) => state.inventory.some(({ itemId }, itemIndex) => itemId === input && (inputs[0] !== inputs[1] || itemIndex >= index))));
   if (!recipe) return state;
   const first = state.inventory.find(({ itemId }) => itemId === recipe.inputs[0]);
   const second = state.inventory.find(({ uid: itemUid, itemId }) => itemUid !== first?.uid && itemId === recipe.inputs[1]);
   if (!first || !second) return state;
   const inventory = [...without(without(state.inventory, first.uid), second.uid), { uid: uid(), itemId: recipe.output }];
-  return autoCombine({ ...state, inventory, notice: `자동 조합 · ${recipe.output}` });
+  return autoCombine({ ...state, inventory, notice: `자동 조합 · ${recipe.output}` }, recipeBook);
 };
 
 export const serve = (state: ShiftState, uidToServe: string): ShiftState => {

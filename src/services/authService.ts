@@ -2,9 +2,10 @@ import type { Session, User } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabase } from "./supabaseClient";
 
 export type PlayerProfile = Readonly<{ userId: string; email: string | null; nickname: string | null; avatarUrl: string | null }>;
+export type SocialProvider = "google" | "kakao";
 
 const secureAvatar = (value: unknown) => typeof value === "string" ? value.replace(/^http:\/\//, "https://") : null;
-const googleProfile = (user: User) => ({
+const socialProfile = (user: User) => ({
   email: user.email ?? null,
   avatar_url: secureAvatar(user.user_metadata.avatar_url ?? user.user_metadata.picture),
 });
@@ -12,13 +13,21 @@ const googleProfile = (user: User) => ({
 export const getRedirectUrl = () => `${window.location.origin}/auth/callback`;
 
 let oauthStarting = false;
-export const signInWithGoogle = async () => {
+const signInWithProvider = async (provider: SocialProvider) => {
   if (!isSupabaseConfigured) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
   if (oauthStarting) return;
   oauthStarting = true;
-  const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: getRedirectUrl(), queryParams: { prompt: "select_account" } } });
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: getRedirectUrl(),
+      ...(provider === "google" ? { queryParams: { prompt: "select_account" } } : {}),
+    },
+  });
   if (error) { oauthStarting = false; throw error; }
 };
+export const signInWithGoogle = () => signInWithProvider("google");
+export const signInWithKakao = () => signInWithProvider("kakao");
 
 export const signOut = async () => { const { error } = await supabase.auth.signOut(); if (error) throw error; };
 
@@ -29,13 +38,13 @@ const exchangeOAuthCode = async (): Promise<Session> => {
   if (code) { const { data, error } = await supabase.auth.exchangeCodeForSession(code); if (error) throw error; if (data.session) return data.session; }
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
-  if (!data.session) throw new Error("Google 로그인 세션을 확인하지 못했습니다.");
+  if (!data.session) throw new Error("소셜 로그인 세션을 확인하지 못했습니다.");
   return data.session;
 };
 export const completeOAuthCallback = (): Promise<Session> => callbackExchange ??= exchangeOAuthCode();
 
 export const syncProfile = async (user: User): Promise<PlayerProfile> => {
-  const metadata = googleProfile(user);
+  const metadata = socialProfile(user);
   const { data: existing, error: readError } = await supabase.from("profiles").select("nickname").eq("user_id", user.id).maybeSingle();
   if (readError) throw readError;
   const { data, error } = await supabase.from("profiles").upsert({ user_id: user.id, ...metadata, nickname: existing?.nickname ?? null, updated_at: new Date().toISOString() }, { onConflict: "user_id" }).select("user_id,email,nickname,avatar_url").single();
