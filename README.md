@@ -1,6 +1,6 @@
 # Coffee Town Three
 
-현재 버전: **0.2.0 — Sound & Automation Update**
+현재 버전: **0.3.0 — Supabase Profile Update**
 
 Coffee Town을 Three.js·React Three Fiber로 처음부터 다시 구축하는 독립 프로토타입입니다. 기존 Unity·React 저장소와 연결되지 않으며, 검증 뒤 인증·Vercel·Supabase를 이전할 수 있도록 Local-First 구조로 구성합니다.
 
@@ -9,6 +9,21 @@ npm install
 npm run assets:generate
 npm run dev
 ```
+
+`.env.local`에는 다음 공개 클라이언트 환경 변수를 설정합니다.
+
+```bash
+VITE_SUPABASE_URL=https://bsbtwhuykfvtcftnbqlm.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+`supabase/migrations/202608310001_profiles_and_progress.sql`을 Supabase SQL Editor에서 한 번 실행해야 합니다. 이 마이그레이션은 기존 Coffee Town 공개 게임 테이블을 삭제한 뒤 `profiles`, `user_progress`, RLS 정책과 Auth 사용자 생성 트리거를 새로 구성합니다. `auth.users`와 Google Identity는 삭제하지 않으며 기존 로그인 사용자의 빈 프로필·진행도 행을 다시 생성합니다.
+
+Google OAuth 설정:
+
+- Google Cloud 승인된 리디렉션 URI: `https://bsbtwhuykfvtcftnbqlm.supabase.co/auth/v1/callback`
+- Supabase Redirect URLs: 배포 주소의 `/auth/callback`, 로컬 개발용 `http://localhost:5173/auth/callback`
+- Vercel SPA 콜백은 `vercel.json` rewrite가 처리합니다.
 
 ## 조작법
 
@@ -57,6 +72,15 @@ npm run dev
 전용 콘셉트 이미지는 `public/assets/concepts/coffee-town-cafe-direction-v1.png`에 보관합니다.
 
 ## 버전 기록
+
+### 0.3.0 — Supabase Profile Update
+
+- Supabase publishable client와 PKCE 세션 연결
+- Google 소셜 로그인과 `/auth/callback` 처리
+- Google 프로필 사진·이메일 동기화 및 로비 프로필 카드
+- 최초 플레이 닉네임 설정 UI와 사용자별 닉네임 저장
+- `profiles`, `user_progress` 신규 SQL 스키마와 사용자 소유 RLS
+- 로그인 사용자의 골드·스테이지·업그레이드 Local-First 동기화
 
 ### 0.2.0 — Sound & Automation Update
 
