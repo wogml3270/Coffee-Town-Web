@@ -11,15 +11,19 @@ const googleProfile = (user: User) => ({
 
 export const getRedirectUrl = () => `${window.location.origin}/auth/callback`;
 
+let oauthStarting = false;
 export const signInWithGoogle = async () => {
   if (!isSupabaseConfigured) throw new Error("Supabase 환경 변수가 설정되지 않았습니다.");
+  if (oauthStarting) return;
+  oauthStarting = true;
   const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: getRedirectUrl(), queryParams: { prompt: "select_account" } } });
-  if (error) throw error;
+  if (error) { oauthStarting = false; throw error; }
 };
 
 export const signOut = async () => { const { error } = await supabase.auth.signOut(); if (error) throw error; };
 
-export const completeOAuthCallback = async (): Promise<Session> => {
+let callbackExchange: Promise<Session> | null = null;
+const exchangeOAuthCode = async (): Promise<Session> => {
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
   if (code) { const { data, error } = await supabase.auth.exchangeCodeForSession(code); if (error) throw error; if (data.session) return data.session; }
@@ -28,6 +32,7 @@ export const completeOAuthCallback = async (): Promise<Session> => {
   if (!data.session) throw new Error("Google 로그인 세션을 확인하지 못했습니다.");
   return data.session;
 };
+export const completeOAuthCallback = (): Promise<Session> => callbackExchange ??= exchangeOAuthCode();
 
 export const syncProfile = async (user: User): Promise<PlayerProfile> => {
   const metadata = googleProfile(user);

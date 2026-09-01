@@ -36,8 +36,9 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
 
 const AuthCallback = () => {
   const [message, setMessage] = useState("Google 계정을 연결하고 있습니다");
-  useEffect(() => { void completeOAuthCallback().then(() => { window.history.replaceState({}, "", "/"); window.location.replace("/"); }).catch((reason) => setMessage(reason instanceof Error ? reason.message : "로그인에 실패했습니다.")); }, []);
-  return <main className="auth-callback"><section><span className="auth-spinner"/><h1>COFFEE TOWN</h1><p>{message}</p><button type="button" onClick={() => window.location.replace("/")}>로비로 돌아가기</button></section></main>;
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { void completeOAuthCallback().then(() => { window.history.replaceState({}, "", "/"); window.location.replace("/"); }).catch((reason) => { setFailed(true); setMessage(reason instanceof Error ? reason.message : "로그인에 실패했습니다."); }); }, []);
+  return <main className="auth-callback"><section>{failed ? null : <span className="auth-spinner"/>}<h1>COFFEE TOWN</h1><p>{message}</p>{failed ? <button type="button" onClick={() => void signInWithGoogle()}>Google 로그인 다시 시작</button> : null}<button type="button" onClick={() => window.location.replace("/")}>로비로 돌아가기</button></section></main>;
 };
 
 const Shift = () => {
