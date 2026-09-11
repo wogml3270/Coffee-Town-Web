@@ -402,7 +402,7 @@ begin
 
   insert into public.player_upgrades (user_id, upgrade_id, level, purchased_at, updated_at)
   values (v_buyer, p_upgrade_id, v_current_level + 1, now(), now())
-  on conflict (user_id, upgrade_id) do update set
+  on conflict on constraint player_upgrades_pkey do update set
     level = excluded.level,
     updated_at = now();
 
