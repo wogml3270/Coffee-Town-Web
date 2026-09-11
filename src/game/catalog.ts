@@ -401,8 +401,46 @@ export type RecipeArchiveEntry = Readonly<{
   recipe: string;
   price?: number;
   category: "source" | "intermediate" | "final";
+  temperature: RecipeTemperature;
   tier: RecipeTier;
 }>;
+export type RecipeTemperature = "hot" | "iced" | "neutral";
+
+const hotRecipeIds = new Set<ItemId>([
+  "hot_water",
+  "espresso",
+  "steamed_milk",
+  "espresso_cup",
+  "americano",
+  "latte",
+  "vanilla_latte",
+  "mocha",
+  "caramel_macchiato",
+  "yuzu_tea",
+  "matcha_latte",
+  "chocolate_latte",
+]);
+const icedRecipeIds = new Set<ItemId>([
+  "cold_water",
+  "ice",
+  "cold_brew_concentrate",
+  "iced_cup",
+  "iced_milk_base",
+  "iced_espresso_base",
+  "cold_brew_base",
+  "oat_cold_brew_base",
+  "iced_americano",
+  "iced_latte",
+  "lemonade",
+  "grapefruitade",
+  "cold_brew",
+  "vanilla_oat_cold_brew",
+]);
+export const recipeTemperatureOf = (itemId: ItemId): RecipeTemperature => {
+  if (hotRecipeIds.has(itemId)) return "hot";
+  if (icedRecipeIds.has(itemId)) return "iced";
+  return "neutral";
+};
 
 export type RecipeTier = 1 | 2 | 3 | 4 | 5;
 export const recipeTierMeta = {
@@ -538,7 +576,7 @@ const sourceRecipes = [
   {
     id: "cold_brew_concentrate",
     name: labels.cold_brew_concentrate,
-    stage: 10,
+    stage: 1,
     recipe: "콜드브루 타워에서 추출",
   },
   { id: "oat_milk", name: labels.oat_milk, stage: 11, recipe: "재료 냉장고에서 꺼내기" },
@@ -554,6 +592,7 @@ export const recipeArchive: readonly RecipeArchiveEntry[] = [
   ...sourceRecipes.map((entry) => ({
     ...entry,
     category: "source" as const,
+    temperature: recipeTemperatureOf(entry.id),
     tier: recipeTierOf(entry.id),
   })),
   ...[...new Set(recipes.map(({ output }) => output))].map((output) => {
@@ -568,6 +607,7 @@ export const recipeArchive: readonly RecipeArchiveEntry[] = [
         alternatives.length > 1 ? alternatives.map((recipe) => `- ${recipe}`).join("\n") : alternatives[0]!,
       price: menuCatalog.find(({ id }) => id === output)?.reward,
       category: drinkIds.includes(output as DrinkId) ? ("final" as const) : ("intermediate" as const),
+      temperature: recipeTemperatureOf(output),
       tier: recipeTierOf(output),
     };
   }),
@@ -580,6 +620,7 @@ export const recipeArchive: readonly RecipeArchiveEntry[] = [
       recipe,
       price: reward,
       category: "final" as const,
+      temperature: recipeTemperatureOf(id),
       tier: recipeTierOf(id),
     })),
 ];

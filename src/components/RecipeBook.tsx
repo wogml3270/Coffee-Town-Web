@@ -88,7 +88,7 @@ export const RecipeBook = () => {
                 return (
                   <article
                     key={menu.id}
-                    className={found ? "found" : available ? "available" : "locked"}
+                    className={`${found ? "found" : available ? "available" : "locked"} recipe-temperature-${menu.temperature}`}
                     style={{ "--tier-color": recipeTierMeta[menu.tier].color } as CSSProperties}
                   >
                     {available || found ? (
@@ -107,6 +107,11 @@ export const RecipeBook = () => {
                     {found ? <RecipeIngredients itemId={menu.id} /> : null}
                     {found && menu.price ? (
                       <strong className="recipe-price">판매가 {menu.price.toLocaleString("ko-KR")}원</strong>
+                    ) : null}
+                    {menu.temperature !== "neutral" ? (
+                      <span className={`recipe-temperature-badge badge-${menu.temperature}`}>
+                        {menu.temperature === "hot" ? "♨ HOT" : "❄ ICED"}
+                      </span>
                     ) : null}
                   </article>
                 );
