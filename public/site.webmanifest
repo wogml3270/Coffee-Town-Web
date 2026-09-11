@@ -1,0 +1,19 @@
+{
+  "name": "Coffee Town · 나만의 카페를 키워요",
+  "short_name": "Coffee Town",
+  "description": "커피를 만들고 손님을 맞이하며 카페를 성장시키는 힐링 3D 게임.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5eddf",
+  "theme_color": "#1b1612",
+  "lang": "ko-KR",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

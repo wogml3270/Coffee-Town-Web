@@ -435,16 +435,17 @@ const Shift = () => {
     score: number;
   }> | null>(null);
   const [menuIntroOpen, setMenuIntroOpen] = useState(() => !seenMenuStages.includes(shift.stageId));
+  const [earlyCloseOpen, setEarlyCloseOpen] = useState(false);
   const newlyAvailableMenus = menuCatalog.filter(({ stage }) => stage === shift.stageId);
   const activeRuntime = shift.activeWork ? shift.stations[shift.activeWork] : null;
   const workProgress = activeRuntime?.total
     ? Math.round(((activeRuntime.total - activeRuntime.remaining) / activeRuntime.total) * 100)
     : 0;
   useEffect(() => {
-    if (menuIntroOpen || recipeBookOpen || fridgeOpen || waterOpen) return;
+    if (menuIntroOpen || recipeBookOpen || fridgeOpen || waterOpen || earlyCloseOpen) return;
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [fridgeOpen, menuIntroOpen, recipeBookOpen, tick, waterOpen]);
+  }, [earlyCloseOpen, fridgeOpen, menuIntroOpen, recipeBookOpen, tick, waterOpen]);
   useEffect(() => {
     soundPlayer.startMusic(shift.stageId);
   }, [shift.stageId]);
@@ -575,7 +576,7 @@ const Shift = () => {
           <small>영업 SCORE</small>
           <strong>{shift.score.toLocaleString("ko-KR")} P</strong>
         </div>
-        <button type="button" onClick={finishEarly}>
+        <button type="button" onClick={() => setEarlyCloseOpen(true)}>
           조기 마감
         </button>
       </header>
@@ -732,6 +733,26 @@ const Shift = () => {
             <button className="fridge-close" type="button" onClick={closeWater}>
               닫기 · ESC
             </button>
+          </div>
+        </section>
+      ) : null}
+      {earlyCloseOpen ? (
+        <section className="fridge-picker early-close-modal" role="dialog" aria-modal="true" aria-labelledby="early-close-title">
+          <div>
+            <p>EARLY CLOSING</p>
+            <h2 id="early-close-title">영업을 마감할까요?</h2>
+            <span>지금 마감하면 현재 영업 기록으로 정산됩니다.</span>
+            <div className="early-close-actions">
+              <button type="button" onClick={() => setEarlyCloseOpen(false)}>
+                계속 영업
+              </button>
+              <button type="button" onClick={() => {
+                setEarlyCloseOpen(false);
+                finishEarly();
+              }}>
+                조기 마감
+              </button>
+            </div>
           </div>
         </section>
       ) : null}
