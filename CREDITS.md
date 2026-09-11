@@ -4,8 +4,6 @@
 
 ## HYP - Full Of Sunshine
 
-♬Licence:영상에 배경음악으로 사용하실 때에 아래 내용을 복사해서붙여넣어주세요. _필수 사항입니다_
-
 ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
 ♬ HYP - Full Of Sunshine  
@@ -13,8 +11,6 @@
 ♬ BGM https://youtu.be/3UdqK47iNIA
 
 ## HYP - What Happened
-
-♬Licence:영상에 배경음악으로 사용하실 때에 아래 내용을 복사해서붙여넣어주세요. _필수 사항입니다_
 
 ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
@@ -24,8 +20,6 @@
 
 ## HYP - Spring Has Come
 
-♬Licence: 영상에 배경음악으로 사용하실 때에 아래 내용을 복사해서붙여넣어주세요. _필수 사항입니다_
-
 ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
 ♬ HYP - Spring Has Come  
@@ -33,8 +27,6 @@
 ♬ https://youtu.be/fhSzUbsd5cY
 
 ## HYP - ggoomma song
-
-♬Licence:영상에 배경음악으로 사용하실 때에 아래 내용을 복사해서붙여넣어주세요. _필수 사항입니다_
 
 ▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
 
