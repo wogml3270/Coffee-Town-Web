@@ -1,5 +1,6 @@
 dist
 node_modules
 public/assets
+docs/item-artwork.html
 *.glb
 *.mp3

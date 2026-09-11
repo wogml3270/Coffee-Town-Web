@@ -14,9 +14,10 @@ Three.js와 React Three Fiber로 제작한 3D 카페 운영 게임입니다. 플
 - `supabase/FINAL_RESET_AND_SCHEMA.sql` 원격 DB 적용 완료
 - 기존 Supabase Auth 계정과 Google·Kakao OAuth 설정은 유지됨
 - 게임 진행도, 업그레이드, 레시피, 점수·랭킹 테이블은 최종 스키마 기준으로 초기화됨
-- 현재 작업 트리에는 아직 커밋되지 않은 수정 및 신규 파일이 많음
-- 마지막 검증: Vitest **45개 통과**, TypeScript 검사 및 Vite 프로덕션 빌드 성공
-- 빌드 시 메인 JavaScript 청크가 500 kB를 넘는다는 경고가 남아 있음
+- 진행도 동기화·영업 정산·업그레이드 구매는 계정별 동기화 큐와 서버 검증 정산을 사용함
+- 전체 재료·가공 재료·베이스·완성 음료 **54종**에 SVG 아이콘이 있음
+- 마지막 검증: Vitest **48개 통과**, TypeScript 검사 및 Vite 프로덕션 빌드 성공
+- 초기 JavaScript 청크는 약 **477 kB**이며 3D 장면과 Three.js는 지연·분리 로딩함
 
 다음 작업자는 작업을 시작하기 전에 반드시 아래를 확인해야 합니다.
 
@@ -42,6 +43,9 @@ GLB 원본 생성 스크립트를 수정했거나 모델을 모두 다시 만들
 
 ```bash
 npm run assets:generate
+
+# catalog.ts의 모든 ItemId SVG 아이콘 재생성
+npm run assets:icons
 ```
 
 이 명령은 `public/assets/models/`의 생성형 GLB 파일을 덮어쓰므로, 단순 실행이나 UI 작업 중에는 실행할 필요가 없습니다.
@@ -125,11 +129,13 @@ supabase/
 - 비로그인 사용자는 진행도를 브라우저 로컬 스토리지에만 저장합니다.
 - 로그인하면 게스트 로컬 진행도를 제거하고 로그인 계정의 DB 진행도만 사용합니다.
 - 영업 중 설비 작동, 인벤토리, 조합, 주문 처리는 Supabase를 호출하지 않습니다.
-- 정상 마감 또는 조기 마감 시 최종 골드와 진행도를 한 번 비동기 저장합니다.
+- 로그인 영업은 `begin_shift_session`으로 서버가 시드와 업그레이드를 발급합니다.
+- 영업 행동은 슬롯 기반 기록으로 남기며, 마감 시 `settle-shift`가 서버에서 재현·검증한 뒤 골드와 점수를 정산합니다.
+- 네트워크가 끊기면 미전송 영업 기록을 계정별 로컬 큐에 보관하고 다음 연결 때 한 번만 재전송합니다.
 - 정상 마감은 골드를 보존하고 다음 스테이지를 해금합니다.
 - 조기 마감은 현재까지 번 골드만 보존하고 다음 스테이지는 해금하지 않습니다.
 - 업그레이드 구매는 `purchase_upgrade` RPC가 선행 조건 검사, 골드 차감, 레벨 상승을 한 트랜잭션으로 처리합니다.
-- 영업 점수는 `record_shift_result`, 랭킹은 `get_leaderboard` RPC를 사용합니다.
+- 검증된 영업 점수는 `verified_stage_best_scores`만 랭킹에 반영합니다.
 
 ## Supabase 최종 스키마
 
@@ -144,13 +150,16 @@ supabase/
 - `player_upgrades`: 사용자별 업그레이드 레벨
 - `shift_results`: 개별 영업 결과
 - `stage_best_scores`: 사용자·스테이지별 최고 점수
+- `shift_sessions`: 서버 발급 영업 시드·업그레이드·중복 정산 방지 상태
+- `verified_stage_best_scores`: 서버 재현 검증을 통과한 개인 최고 점수
+- `begin_shift_session(integer, integer)`
 - `purchase_upgrade(text)`
-- `record_shift_result(...)`
+- `commit_verified_shift(uuid, uuid, jsonb)` (service role 전용)
 - `get_leaderboard(integer)`
 
 `auth.users`, `auth.identities`, Storage와 OAuth 설정은 최종 SQL의 삭제 대상이 아닙니다.
 
-스키마를 다시 초기화해야 할 때만 SQL Editor에서 `FINAL_RESET_AND_SCHEMA.sql` 전체를 한 번 실행합니다. 실행 시 닉네임, 골드, 스테이지, 발견 레시피, 업그레이드, 점수와 랭킹이 모두 삭제됩니다.
+기존 운영 DB에는 [verified settlement migration](./supabase/upgrades/202609110005_verified_shift_settlement.sql)을 한 번 적용하고, Supabase Edge Function `settle-shift`를 배포해야 합니다. 이 마이그레이션은 기존 데이터를 삭제하지 않습니다. `FINAL_RESET_AND_SCHEMA.sql`은 새 환경을 처음 만들 때만 사용하며, 실행 시 닉네임, 골드, 스테이지, 발견 레시피, 업그레이드, 점수와 랭킹이 모두 삭제됩니다.
 
 ## OAuth 및 배포 설정
 
@@ -331,12 +340,18 @@ http://localhost:5173/auth/callback
 
 게임 영상이나 음원을 외부에 사용할 때는 [CREDITS.md](./CREDITS.md)의 필수 출처 문구를 그대로 표기해야 합니다.
 
+## 아이템 SVG와 레시피 이미지
+
+`src/game/itemArtwork.ts`가 카탈로그의 모든 `ItemId`에 대한 용기·색상·얼음·거품·장식 정의를 보유합니다. `npm run assets:icons`는 이 정의를 바탕으로 `public/assets/items/*.svg` 54개와 전체 목록 미리보기 [docs/item-artwork.html](./docs/item-artwork.html)을 생성합니다.
+
+아이콘은 인벤토리 슬롯, 냉장고·정수기 선택, 주문 HUD, 신규 메뉴 안내, 레시피 도감과 레시피 재료 경로에 공통으로 사용합니다.
+
 ## 검증과 알려진 기술 부채
 
-- `npm test`: 마지막 실행에서 45개 테스트 통과
+- `npm test`: 마지막 실행에서 48개 테스트 통과
 - `npm run build`: TypeScript와 Vite 빌드 성공
-- Vite 빌드 결과 메인 JS 청크가 약 1.5 MB이며 코드 분할이 필요함
-- 최종 SQL은 원격 Supabase에 적용됐지만 실제 로그인·진행도 저장·업그레이드 구매·랭킹 RPC의 배포 환경 회귀 테스트가 필요함
+- Vite 빌드 결과 초기 JS 청크는 약 477 kB이며 3D 장면은 별도 청크로 분리됨
+- 서버 정산을 사용하려면 운영 Supabase에 verified settlement migration과 Edge Function 배포가 필요함
 - 최근 블렌더와 레시피 단계 변경은 자동 테스트를 통과했지만 PC·모바일 실제 플레이 동선 QA가 필요함
 - UI와 3D 배치는 화면비마다 육안 검증해야 함
 - `public/assets/models/`에 생성 결과물이 많으므로 무관한 GLB를 일괄 재생성하지 말 것

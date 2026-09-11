@@ -1,13 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import { soundPlayer } from "./audio/soundPlayer";
-import {
-  fridgeIngredients,
-  labels,
-  menuCatalog,
-  recipeTierMeta,
-  recipeTierOf,
-  stages,
-} from "./game/catalog";
+import { fridgeIngredients, labels, menuCatalog, recipeTierMeta, recipeTierOf, stages } from "./game/catalog";
 import { businessClock } from "./game/rules";
 import { useGame } from "./game/store";
 import { ItemImage } from "./components/ItemImage";
@@ -507,7 +500,15 @@ const Shift = () => {
   }, [closeFridge, fridgeOpen, shift.stageId, takeFromFridge]);
   return (
     <main className={`game-screen ${shift.fever ? "fever" : ""}`}>
-      <Suspense fallback={<div className="scene-loading" role="status">카페를 준비하고 있습니다…</div>}><CafeScene /></Suspense>
+      <Suspense
+        fallback={
+          <div className="scene-loading" role="status">
+            카페를 준비하고 있습니다…
+          </div>
+        }
+      >
+        <CafeScene />
+      </Suspense>
       {newDiscovery ? (
         <section className="recipe-discovery" role="status" aria-live="polite">
           <div className="discovery-rays" />
@@ -685,12 +686,14 @@ const Shift = () => {
             <div className="fridge-grid water-grid">
               <button type="button" onClick={() => takeWater("hot_water")}>
                 <i>1</i>
-                <ItemImage itemId="hot_water" /><b>온수</b>
+                <ItemImage itemId="hot_water" />
+                <b>온수</b>
                 <small>뜨거운 음료용</small>
               </button>
               <button type="button" onClick={() => takeWater("cold_water")}>
                 <i>2</i>
-                <ItemImage itemId="cold_water" /><b>냉수</b>
+                <ItemImage itemId="cold_water" />
+                <b>냉수</b>
                 <small>차가운 음료용</small>
               </button>
             </div>
@@ -726,17 +729,21 @@ const Shift = () => {
   );
 };
 
-export const App = () => window.location.pathname === "/auth/callback" ? <AuthCallback /> : <GameApp />;
+export const App = () => (window.location.pathname === "/auth/callback" ? <AuthCallback /> : <GameApp />);
 
 const GameApp = () => {
   const screen = useGame(({ screen }) => screen);
   const { profile, sync, blocked, retry } = useAccountProgress();
   useEffect(() => {
     let active = true;
-    void loadCombinationRecipes().then((recipes) => {
-      if (active) useGame.getState().setCombinationRecipes(recipes);
-    }).catch(() => {});
-    return () => { active = false; };
+    void loadCombinationRecipes()
+      .then((recipes) => {
+        if (active) useGame.getState().setCombinationRecipes(recipes);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
   }, []);
   useEffect(() => {
     const click = (event: MouseEvent) => {
@@ -745,13 +752,21 @@ const GameApp = () => {
     document.addEventListener("click", click);
     return () => document.removeEventListener("click", click);
   }, []);
-  if (blocked) return (
-    <main className="auth-callback"><section>
-      {sync.status === "loading" ? <span className="auth-spinner" /> : null}
-      <h1>COFFEE TOWN</h1><p>{sync.message}</p>
-      {sync.status === "error" ? <button type="button" onClick={retry}>다시 시도</button> : null}
-    </section></main>
-  );
+  if (blocked)
+    return (
+      <main className="auth-callback">
+        <section>
+          {sync.status === "loading" ? <span className="auth-spinner" /> : null}
+          <h1>COFFEE TOWN</h1>
+          <p>{sync.message}</p>
+          {sync.status === "error" ? (
+            <button type="button" onClick={retry}>
+              다시 시도
+            </button>
+          ) : null}
+        </section>
+      </main>
+    );
   const content =
     screen === "title" ? (
       <Title profile={profile} />
@@ -765,9 +780,16 @@ const GameApp = () => {
   return (
     <>
       {content}
-      {sync.status !== "ready" || sync.message ? <aside className="sync-banner" role="status" aria-live="polite">
-        <span>{sync.message}</span>{sync.status === "error" ? <button type="button" onClick={retry}>저장 다시 시도</button> : null}
-      </aside> : null}
+      {sync.status !== "ready" || sync.message ? (
+        <aside className="sync-banner" role="status" aria-live="polite">
+          <span>{sync.message}</span>
+          {sync.status === "error" ? (
+            <button type="button" onClick={retry}>
+              저장 다시 시도
+            </button>
+          ) : null}
+        </aside>
+      ) : null}
       {screen !== "upgrade" ? <RecipeBook /> : null}
     </>
   );

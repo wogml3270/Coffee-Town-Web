@@ -1,7 +1,14 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import { soundPlayer } from "../audio/soundPlayer";
 import { useGame } from "../game/store";
-import { canBuyUpgrade, unmetUpgradeRequirements, upgradeCategories, upgradeNodeById, upgradeNodes, type UpgradeId } from "../game/upgradeTree";
+import {
+  canBuyUpgrade,
+  unmetUpgradeRequirements,
+  upgradeCategories,
+  upgradeNodeById,
+  upgradeNodes,
+  type UpgradeId,
+} from "../game/upgradeTree";
 import { loadUpgradeCatalog } from "../services/upgradeService";
 
 const UpgradeIcon = ({ id }: Readonly<{ id: UpgradeId }>) => {
@@ -241,4 +248,3 @@ export const Upgrade = () => {
     </main>
   );
 };
-

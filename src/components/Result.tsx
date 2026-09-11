@@ -12,8 +12,14 @@ export const Result = ({ profile, sync }: Readonly<{ profile: PlayerProfile | nu
   const openUpgrade = useGame(({ openUpgrade }) => openUpgrade);
   const bankGold = useGame(({ bankGold }) => bankGold);
   const breakdown = calculateShiftScore(shift);
-  const scoreStatus = !profile ? "게스트 기록" : sync.status === "ready" ? "영업 기록 저장 완료" : sync.message;
-  useEffect(() => { soundPlayer.startLobbyMusic(); }, []);
+  const scoreStatus = !profile
+    ? "게스트 기록"
+    : sync.status === "ready"
+      ? "영업 기록 저장 완료"
+      : sync.message;
+  useEffect(() => {
+    soundPlayer.startLobbyMusic();
+  }, []);
   return (
     <main className="result-screen">
       <section>
@@ -64,4 +70,3 @@ export const Result = ({ profile, sync }: Readonly<{ profile: PlayerProfile | nu
     </main>
   );
 };
-

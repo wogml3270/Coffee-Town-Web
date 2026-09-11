@@ -21,10 +21,10 @@ export const loadProgress = async (userId: string): Promise<CloudProgress> => {
   if (!data) throw new Error("PROGRESS_NOT_FOUND");
   const relationalUpgrades = await loadPlayerUpgrades(userId);
   return {
-        gold: Number(data.gold),
-        unlockedStage: data.unlocked_stage,
-        upgrades: relationalUpgrades,
-        discoveredRecipes: (data.discovered_recipes ?? []) as ItemId[],
-        seenMenuStages: (data.seen_menu_stages ?? []) as number[],
-      };
+    gold: Number(data.gold),
+    unlockedStage: data.unlocked_stage,
+    upgrades: relationalUpgrades,
+    discoveredRecipes: (data.discovered_recipes ?? []) as ItemId[],
+    seenMenuStages: (data.seen_menu_stages ?? []) as number[],
+  };
 };

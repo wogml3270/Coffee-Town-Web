@@ -122,11 +122,22 @@ export const subscribeToAuth = (listener: (profile: PlayerProfile | null) => voi
     const current = ++generation;
     window.setTimeout(() => {
       if (!active || current !== generation) return;
-      if (!session) { listener(null); return; }
-      void syncProfile(session.user).then((profile) => {
-        if (active && current === generation) listener(profile);
-      }).catch(() => { if (active && current === generation) onError(); });
+      if (!session) {
+        listener(null);
+        return;
+      }
+      void syncProfile(session.user)
+        .then((profile) => {
+          if (active && current === generation) listener(profile);
+        })
+        .catch(() => {
+          if (active && current === generation) onError();
+        });
     }, 0);
   });
-  return () => { active = false; generation++; data.subscription.unsubscribe(); };
+  return () => {
+    active = false;
+    generation++;
+    data.subscription.unsubscribe();
+  };
 };

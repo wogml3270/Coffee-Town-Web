@@ -1,15 +1,15 @@
-import { applyShiftAction, shiftProtocolVersion, type ShiftAction, type ShiftReceipt, type ShiftSession } from "./shiftProtocol";
+import {
+  applyShiftAction,
+  shiftProtocolVersion,
+  type ShiftAction,
+  type ShiftReceipt,
+  type ShiftSession,
+} from "./shiftProtocol";
 import type { UpgradeId as GatewayUpgradeId } from "./upgradeTree";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { recipes, stages, type CombinationRecipe, type ItemId, type StationId } from "./catalog";
-import {
-  createShift,
-  defaultUpgrades,
-  tick,
-  type ShiftState,
-  type Upgrades,
-} from "./rules";
+import { createShift, defaultUpgrades, tick, type ShiftState, type Upgrades } from "./rules";
 import { guestProgressStorage, guestProgressStorageKey } from "./progressPersistence";
 import { canBuyUpgrade, maxUpgradeLevel, upgradeCost, upgradeNodeById, type UpgradeId } from "./upgradeTree";
 
@@ -20,7 +20,9 @@ export type ProgressGateway = Readonly<{
   purchase: (id: GatewayUpgradeId) => Promise<void>;
 }>;
 let progressGateway: ProgressGateway | null = null;
-export const setProgressGateway = (gateway: ProgressGateway | null) => { progressGateway = gateway; };
+export const setProgressGateway = (gateway: ProgressGateway | null) => {
+  progressGateway = gateway;
+};
 
 export type Screen = "title" | "shift" | "result" | "upgrade";
 export type { UpgradeId } from "./upgradeTree";
@@ -173,25 +175,64 @@ export const useGame = create<GameStore>()(
         const { upgrades, selectedStage } = get();
         const session = gateway ? await gateway.begin(selectedStage) : null;
         if (gateway !== progressGateway || (gateway && !session)) return;
-        set({ screen: "shift", sessionId: session?.id ?? null, actions: [],
+        set({
+          screen: "shift",
+          sessionId: session?.id ?? null,
+          actions: [],
           shift: createShift(session?.upgrades ?? upgrades, session?.stageId ?? selectedStage, session?.seed),
-          selectedUid: null, nearbyStation: null, fridgeOpen: false, waterOpen: false, newDiscovery: null });
+          selectedUid: null,
+          nearbyStation: null,
+          fridgeOpen: false,
+          waterOpen: false,
+          newDiscovery: null,
+        });
       },
       exit: () => {
-        const { screen, shift, bankGold, upgrades, selectedStage, sessionId, actions, seenMenuStages } = get();
+        const { screen, shift, bankGold, upgrades, selectedStage, sessionId, actions, seenMenuStages } =
+          get();
         if (screen === "shift" && sessionId && progressGateway) {
-          void progressGateway.settle({ sessionId, version: shiftProtocolVersion, elapsed: 360 - shift.time, actions, seenMenuStages: seenMenuStages.filter((stage) => stage <= shift.stageId) });
+          void progressGateway.settle({
+            sessionId,
+            version: shiftProtocolVersion,
+            elapsed: 360 - shift.time,
+            actions,
+            seenMenuStages: seenMenuStages.filter((stage) => stage <= shift.stageId),
+          });
         }
-        set({ screen: "title", sessionId: null, actions: [], bankGold: bankGold + exitEarnings(screen, shift.gold),
-          shift: createShift(upgrades, selectedStage), selectedUid: null, nearbyStation: null,
-          fridgeOpen: false, waterOpen: false, newDiscovery: null });
+        set({
+          screen: "title",
+          sessionId: null,
+          actions: [],
+          bankGold: bankGold + exitEarnings(screen, shift.gold),
+          shift: createShift(upgrades, selectedStage),
+          selectedUid: null,
+          nearbyStation: null,
+          fridgeOpen: false,
+          waterOpen: false,
+          newDiscovery: null,
+        });
       },
       finish: () => {
         const { screen, shift, bankGold, unlockedStage, sessionId, actions, seenMenuStages } = get();
         if (screen !== "shift" || shift.time !== 0) return;
-        if (sessionId && progressGateway) void progressGateway.settle({ sessionId, version: shiftProtocolVersion, elapsed: 360, actions, seenMenuStages: seenMenuStages.filter((stage) => stage <= shift.stageId) });
-        set({ screen: "result", sessionId: null, actions: [], selectedUid: null, nearbyStation: null, newDiscovery: null,
-          bankGold: bankGold + shift.gold, unlockedStage: unlockedAfterFullDay(unlockedStage, shift.stageId) });
+        if (sessionId && progressGateway)
+          void progressGateway.settle({
+            sessionId,
+            version: shiftProtocolVersion,
+            elapsed: 360,
+            actions,
+            seenMenuStages: seenMenuStages.filter((stage) => stage <= shift.stageId),
+          });
+        set({
+          screen: "result",
+          sessionId: null,
+          actions: [],
+          selectedUid: null,
+          nearbyStation: null,
+          newDiscovery: null,
+          bankGold: bankGold + shift.gold,
+          unlockedStage: unlockedAfterFullDay(unlockedStage, shift.stageId),
+        });
       },
       purchase: async (id) => {
         if (progressGateway) await progressGateway.purchase(id);
@@ -205,33 +246,69 @@ export const useGame = create<GameStore>()(
       act: (kind, target, slot) => {
         const state = get();
         if (state.screen !== "shift" || state.shift.time <= 0) return;
-        if (state.actions.length >= 12000) { set({ shift: { ...state.shift, notice: "오늘의 작업 한도에 도달했습니다. 영업을 마감하세요." } }); return; }
-        const action: ShiftAction = { at: 360 - state.shift.time, kind, slot: slot ?? state.shift.inventory.findIndex(({ uid }) => uid === state.selectedUid), ...(target ? { target } : {}) };
+        if (state.actions.length >= 12000) {
+          set({ shift: { ...state.shift, notice: "오늘의 작업 한도에 도달했습니다. 영업을 마감하세요." } });
+          return;
+        }
+        const action: ShiftAction = {
+          at: 360 - state.shift.time,
+          kind,
+          slot: slot ?? state.shift.inventory.findIndex(({ uid }) => uid === state.selectedUid),
+          ...(target ? { target } : {}),
+        };
         let next: ShiftState;
-        try { next = applyShiftAction(state.shift, action, state.sessionId ? recipes : state.combinationRecipes); }
-        catch { return; }
+        try {
+          next = applyShiftAction(state.shift, action, state.sessionId ? recipes : state.combinationRecipes);
+        } catch {
+          return;
+        }
         const selectedExists = next.inventory.some(({ uid }) => uid === state.selectedUid);
-        const newest = next.inventory.find(({ uid }) => !state.shift.inventory.some((item) => item.uid === uid));
-        set({ shift: next, actions: state.sessionId ? [...state.actions, action] : state.actions,
+        const newest = next.inventory.find(
+          ({ uid }) => !state.shift.inventory.some((item) => item.uid === uid),
+        );
+        set({
+          shift: next,
+          actions: state.sessionId ? [...state.actions, action] : state.actions,
           discoveredRecipes: mergeDiscoveries(state.discoveredRecipes, next),
           newDiscovery: latestDiscovery(state.discoveredRecipes, state.shift, next),
-          selectedUid: selectedExists ? state.selectedUid : newest?.uid ?? null });
+          selectedUid: selectedExists ? state.selectedUid : (newest?.uid ?? null),
+        });
       },
-      discard: (uid) => get().act("discard", undefined, get().shift.inventory.findIndex((item) => item.uid === uid)),
+      discard: (uid) =>
+        get().act(
+          "discard",
+          undefined,
+          get().shift.inventory.findIndex((item) => item.uid === uid),
+        ),
       clearDiscovery: () => set({ newDiscovery: null }),
       interact: (station) => {
         if (get().screen !== "shift" || get().shift.time <= 0) return;
-        if (station === "fridge") { set({ fridgeOpen: true }); return; }
-        if (station === "water") { set({ waterOpen: true }); return; }
+        if (station === "fridge") {
+          set({ fridgeOpen: true });
+          return;
+        }
+        if (station === "water") {
+          set({ waterOpen: true });
+          return;
+        }
         get().act("station", station);
       },
-      interactNearby: () => { const station = get().nearbyStation; if (station) get().interact(station); },
+      interactNearby: () => {
+        const station = get().nearbyStation;
+        if (station) get().interact(station);
+      },
       combine: () => get().act("combine"),
       setNearbyStation: (nearbyStation) => set({ nearbyStation }),
       closeFridge: () => set({ fridgeOpen: false }),
       closeWater: () => set({ waterOpen: false }),
-      takeWater: (itemId) => { get().act("water", itemId); set({ waterOpen: false }); },
-      takeFromFridge: (itemId) => { get().act("fridge", itemId); set({ fridgeOpen: false }); },
+      takeWater: (itemId) => {
+        get().act("water", itemId);
+        set({ waterOpen: false });
+      },
+      takeFromFridge: (itemId) => {
+        get().act("fridge", itemId);
+        set({ fridgeOpen: false });
+      },
       buyUpgrade: (upgrade) =>
         set(({ upgrades, bankGold }) => {
           const node = upgradeNodeById(upgrade);

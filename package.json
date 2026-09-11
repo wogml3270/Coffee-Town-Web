@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "assets:icons": "node scripts/generate-item-icons.mjs",
     "assets:generate": "node scripts/generate-glb-assets.mjs",
     "build": "tsc --noEmit && vite build",
     "format": "prettier --write .",

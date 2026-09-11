@@ -91,7 +91,12 @@ const makeOrder = (sequence: number, stageId: number, seed: number, previous?: D
   const selected = candidates[Math.floor(orderRandom(seed, sequence) * candidates.length)] ?? menu[0]!;
   return { id: sequence, itemId: selected.id, name: selected.name, reward: selected.reward };
 };
-const makeOrderQueue = (sequence: number, stageId: number, seed: number, previous?: DrinkId): readonly Order[] => {
+const makeOrderQueue = (
+  sequence: number,
+  stageId: number,
+  seed: number,
+  previous?: DrinkId,
+): readonly Order[] => {
   const orders: Order[] = [];
   let last = previous;
   for (let index = 0; index < 3; index += 1) {
@@ -143,7 +148,11 @@ const begin = (
   };
 };
 
-export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1, seed = Math.floor(Math.random() * 2147483647)): ShiftState => {
+export const createShift = (
+  upgrades: Upgrades = defaultUpgrades,
+  stageId = 1,
+  seed = Math.floor(Math.random() * 2147483647),
+): ShiftState => {
   const stage = stages.find(({ id }) => id === stageId) ?? stages[0]!;
   const orders = makeOrderQueue(0, stage.id, seed);
   return {

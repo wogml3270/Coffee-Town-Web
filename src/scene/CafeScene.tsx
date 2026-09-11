@@ -689,7 +689,13 @@ const Interior = () => {
 
 export const CafeScene = memo(() => (
   <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance" }}>
-    <Suspense fallback={<Html center><div className="scene-loading-label">카페를 준비하고 있습니다…</div></Html>}>
+    <Suspense
+      fallback={
+        <Html center>
+          <div className="scene-loading-label">카페를 준비하고 있습니다…</div>
+        </Html>
+      }
+    >
       <Interior />
     </Suspense>
   </Canvas>

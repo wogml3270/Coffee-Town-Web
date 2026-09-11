@@ -84,19 +84,26 @@ export const RecipeBook = () => {
               {visibleRecipes.map((menu) => {
                 const found = discovered.includes(menu.id);
                 const available = menu.stage <= unlockedStage;
+                const revealed = found || menu.category === "source";
                 return (
                   <article
                     key={menu.id}
                     className={found ? "found" : available ? "available" : "locked"}
                     style={{ "--tier-color": recipeTierMeta[menu.tier].color } as CSSProperties}
                   >
-                    {available || found ? <ItemImage itemId={menu.id} /> : <span className="item-image item-image-unknown" aria-label="미해금 아이템">?</span>}
+                    {available || found ? (
+                      <ItemImage itemId={menu.id} />
+                    ) : (
+                      <span className="item-image item-image-unknown" aria-label="미해금 아이템">
+                        ?
+                      </span>
+                    )}
                     <i>{found ? "✓" : "?"}</i>
                     <small>
                       {menu.tier}단계 · {recipeTierMeta[menu.tier].name}
                     </small>
-                    <h3>{found ? menu.name : available ? menu.name : "???"}</h3>
-                    <p>{found ? menu.recipe : "조합에 성공하면 제조법이 공개됩니다"}</p>
+                    <h3>{revealed ? menu.name : available ? menu.name : "???"}</h3>
+                    <p>{revealed ? menu.recipe : "조합에 성공하면 제조법이 공개됩니다"}</p>
                     {found ? <RecipeIngredients itemId={menu.id} /> : null}
                     {found && menu.price ? (
                       <strong className="recipe-price">판매가 {menu.price.toLocaleString("ko-KR")}원</strong>
@@ -111,4 +118,3 @@ export const RecipeBook = () => {
     </aside>
   );
 };
-

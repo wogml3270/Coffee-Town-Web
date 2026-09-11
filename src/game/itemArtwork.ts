@@ -1,10 +1,23 @@
 import type { ItemId } from "./catalog";
 
 export type ItemArtwork = Readonly<{
-  vessel: "bag" | "shot" | "cup" | "pitcher" | "carton" | "ice" | "bottle" | "jar" | "beans" | "glass" | "bowl" | "blended";
+  vessel:
+    | "bag"
+    | "shot"
+    | "cup"
+    | "pitcher"
+    | "carton"
+    | "ice"
+    | "bottle"
+    | "jar"
+    | "beans"
+    | "glass"
+    | "bowl"
+    | "blended";
   color: string;
   accent: string;
-  garnish?: "coffee" | "lemon" | "grapefruit" | "yuzu" | "vanilla" | "chocolate" | "caramel" | "matcha" | "oat";
+  garnish?:
+    "coffee" | "lemon" | "grapefruit" | "yuzu" | "vanilla" | "chocolate" | "caramel" | "matcha" | "oat";
   ice?: boolean;
   foam?: boolean;
   steam?: boolean;
@@ -53,16 +66,59 @@ export const itemArtwork = {
   iced_americano: { vessel: "glass", color: "#80513a", accent: "#c99966", garnish: "coffee", ice: true },
   latte: { vessel: "cup", color: "#c39469", accent: "#f7e7c6", foam: true, steam: true },
   iced_latte: { vessel: "glass", color: "#c29670", accent: "#f4e5c8", ice: true, layers: true },
-  vanilla_latte: { vessel: "cup", color: "#d4ae7e", accent: "#fff0cb", garnish: "vanilla", foam: true, steam: true },
-  mocha: { vessel: "cup", color: "#916447", accent: "#e3bf9d", garnish: "chocolate", foam: true, steam: true },
-  caramel_macchiato: { vessel: "glass", color: "#bb9264", accent: "#f4e4bd", garnish: "caramel", layers: true, foam: true },
+  vanilla_latte: {
+    vessel: "cup",
+    color: "#d4ae7e",
+    accent: "#fff0cb",
+    garnish: "vanilla",
+    foam: true,
+    steam: true,
+  },
+  mocha: {
+    vessel: "cup",
+    color: "#916447",
+    accent: "#e3bf9d",
+    garnish: "chocolate",
+    foam: true,
+    steam: true,
+  },
+  caramel_macchiato: {
+    vessel: "glass",
+    color: "#bb9264",
+    accent: "#f4e4bd",
+    garnish: "caramel",
+    layers: true,
+    foam: true,
+  },
   lemonade: { vessel: "glass", color: "#f3d569", accent: "#fff0b7", garnish: "lemon", ice: true },
   grapefruitade: { vessel: "glass", color: "#e69585", accent: "#f9cdab", garnish: "grapefruit", ice: true },
   yuzu_tea: { vessel: "cup", color: "#ddb256", accent: "#f5d988", garnish: "yuzu", steam: true },
-  matcha_latte: { vessel: "cup", color: "#91aa71", accent: "#e9ecd0", garnish: "matcha", foam: true, steam: true },
-  chocolate_latte: { vessel: "cup", color: "#aa7a59", accent: "#eed6b9", garnish: "chocolate", foam: true, steam: true },
+  matcha_latte: {
+    vessel: "cup",
+    color: "#91aa71",
+    accent: "#e9ecd0",
+    garnish: "matcha",
+    foam: true,
+    steam: true,
+  },
+  chocolate_latte: {
+    vessel: "cup",
+    color: "#aa7a59",
+    accent: "#eed6b9",
+    garnish: "chocolate",
+    foam: true,
+    steam: true,
+  },
   cold_brew: { vessel: "glass", color: "#554035", accent: "#b38b63", ice: true },
-  vanilla_oat_cold_brew: { vessel: "glass", color: "#a68360", accent: "#eee0bf", garnish: "vanilla", ice: true, layers: true, foam: true },
+  vanilla_oat_cold_brew: {
+    vessel: "glass",
+    color: "#a68360",
+    accent: "#eee0bf",
+    garnish: "vanilla",
+    ice: true,
+    layers: true,
+    foam: true,
+  },
   mocha_blended: { vessel: "blended", color: "#9c7057", accent: "#e9d0b2", garnish: "coffee" },
   vanilla_blended: { vessel: "blended", color: "#e7d4ab", accent: "#fff3d9", garnish: "vanilla" },
   matcha_blended: { vessel: "blended", color: "#9bae79", accent: "#e4eaca", garnish: "matcha" },
