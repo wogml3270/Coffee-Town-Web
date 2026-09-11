@@ -818,9 +818,6 @@ const Shift = () => {
                     <i>{index === 9 ? 0 : index + 1}</i>
                     <ItemImage itemId={itemId} />
                     <b>{labels[itemId]}</b>
-                    <small>
-                      {shift.stageId < minStage ? `STAGE ${minStage} 해금` : `${recipeTierMeta[tier].name} · 즉시 꺼내기`}
-                    </small>
                   </button>
                 );
               })}

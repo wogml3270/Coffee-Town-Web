@@ -155,8 +155,8 @@ export const labels: Readonly<Record<ItemId, string>> = {
   yuzu_syrup: "유자청",
   vanilla_syrup: "바닐라 시럽",
   vanilla_bean: "바닐라빈",
-  chocolate_sauce: "초콜릿 소스",
-  caramel_sauce: "카라멜 소스",
+  chocolate_sauce: "초콜릿 시럽",
+  caramel_sauce: "카라멜 시럽",
   matcha_powder: "말차 파우더",
   cold_brew_concentrate: "콜드브루 원액",
   lemon_base: "레몬 베이스",
@@ -256,7 +256,7 @@ export const menuCatalog: readonly MenuDefinition[] = [
     name: "카페모카",
     stage: 3,
     reward: 5200,
-    recipe: "컵 + 에스프레소 + 초콜릿 소스 + 스팀 밀크",
+    recipe: "컵 + 에스프레소 + 초콜릿 시럽 + 스팀 밀크",
   },
   {
     id: "caramel_macchiato",
@@ -280,7 +280,7 @@ export const menuCatalog: readonly MenuDefinition[] = [
     name: "초콜릿 라떼",
     stage: 9,
     reward: 5200,
-    recipe: "컵 + 초콜릿 소스 + 스팀 밀크",
+    recipe: "컵 + 초콜릿 시럽 + 스팀 밀크",
   },
   {
     id: "cold_brew",

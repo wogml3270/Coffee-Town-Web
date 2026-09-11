@@ -23,6 +23,7 @@
     "zustand": "latest"
   },
   "devDependencies": {
+    "@types/node": "^22.20.2",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "@types/three": "latest",

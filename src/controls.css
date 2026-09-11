@@ -1559,6 +1559,37 @@
   }
 }
 @media (max-width: 700px) {
+  .fridge-picker {
+    padding: 12px;
+    overflow: hidden;
+  }
+  .fridge-picker > div {
+    display: flex;
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    flex-direction: column;
+    overflow: hidden;
+    padding: 14px;
+  }
+  .fridge-picker h2 {
+    font-size: 24px;
+  }
+  .fridge-picker > div > span {
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+  .fridge-grid {
+    min-height: 0;
+    margin: 12px 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .fridge-grid button {
+    min-height: 78px;
+  }
+  .fridge-picker .fridge-close {
+    flex-shrink: 0;
+  }
   .stage-picker {
     grid-template-columns: repeat(4, minmax(62px, 1fr));
     max-height: 220px;
