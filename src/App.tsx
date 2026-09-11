@@ -436,6 +436,7 @@ const Shift = () => {
   }> | null>(null);
   const [menuIntroOpen, setMenuIntroOpen] = useState(() => !seenMenuStages.includes(shift.stageId));
   const [earlyCloseOpen, setEarlyCloseOpen] = useState(false);
+  const [automationMenuOpen, setAutomationMenuOpen] = useState(false);
   const newlyAvailableMenus = menuCatalog.filter(({ stage }) => stage === shift.stageId);
   const activeRuntime = shift.activeWork ? shift.stations[shift.activeWork] : null;
   const workProgress = activeRuntime?.total
@@ -579,9 +580,19 @@ const Shift = () => {
         <button type="button" onClick={() => setEarlyCloseOpen(true)}>
           조기 마감
         </button>
+        {automationLevel > 0 || autoServeLevel > 0 ? (
+          <button
+            className="mobile-automation-toggle"
+            type="button"
+            aria-expanded={automationMenuOpen}
+            onClick={() => setAutomationMenuOpen((open) => !open)}
+          >
+            자동화 {automationMenuOpen ? "닫기" : "메뉴"}
+          </button>
+        ) : null}
       </header>
       {automationLevel > 0 || autoServeLevel > 0 ? (
-        <aside className="automation-controls" aria-label="자동화 설정">
+        <aside className={`automation-controls ${automationMenuOpen ? "open" : ""}`} aria-label="자동화 설정">
           <small>자동화</small>
           {automationLevel > 0 ? (
             <button

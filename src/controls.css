@@ -1204,7 +1204,7 @@
     overflow-x: auto;
   }
   .inventory {
-    bottom: 142px;
+    bottom: 68px;
     height: 92px;
     min-height: 92px;
     align-items: stretch;
@@ -1248,7 +1248,7 @@
   .notice {
     left: 10px;
     right: 10px;
-    bottom: max(72px, calc(env(safe-area-inset-bottom) + 64px));
+    bottom: max(10px, env(safe-area-inset-bottom));
     width: auto;
     margin: 0;
     min-height: 46px;
@@ -1262,7 +1262,7 @@
     position: absolute;
     z-index: 12;
     right: 62px;
-    bottom: 242px;
+    bottom: 166px;
     left: auto;
     display: flex;
     gap: 6px;
@@ -2108,7 +2108,7 @@
   .recipe-book {
     top: auto;
     right: 10px;
-    bottom: 242px;
+    bottom: 166px;
   }
   .recipe-book.title {
     top: max(12px, env(safe-area-inset-top));
@@ -2278,6 +2278,21 @@
     grid-column: 1 / -1;
     width: 100%;
     min-height: 36px;
+  }
+  .mobile-automation-toggle {
+    display: block;
+    grid-column: 1 / -1;
+    min-height: 32px;
+    padding: 0 10px;
+    border-color: #d7b469;
+    color: #ffe9b8;
+  }
+  .automation-controls {
+    display: none;
+    top: 224px;
+  }
+  .automation-controls.open {
+    display: flex;
   }
   .hud .order {
     padding-left: 48px;
