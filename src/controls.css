@@ -609,6 +609,13 @@
   min-width: 0;
   flex: 1;
 }
+/* Keep sparse inventories compact; four or more items continue to share the row. */
+.inventory[data-count="1"] .inventory-item,
+.inventory[data-count="2"] .inventory-item,
+.inventory[data-count="3"] .inventory-item {
+  flex: 0 1 144px;
+  max-width: 176px;
+}
 .inventory .inventory-select {
   position: relative;
   display: flex;
@@ -1160,6 +1167,12 @@
   .inventory-item {
     min-width: 68px;
     flex: 0 0 68px;
+  }
+  .inventory[data-count="1"] .inventory-item,
+  .inventory[data-count="2"] .inventory-item,
+  .inventory[data-count="3"] .inventory-item {
+    flex: 0 1 92px;
+    max-width: 108px;
   }
   .character-buttons {
     grid-template-columns: 1fr;

@@ -67,8 +67,7 @@ export const RecipeBook = () => {
                       style={{ "--tier-color": meta.color } as CSSProperties}
                       onClick={() => setTab(tierNumber)}
                     >
-                      <b>{tier}단계</b>
-                      <small>{meta.name}</small>
+                      <b>{meta.name}</b>
                     </button>
                   );
                 },

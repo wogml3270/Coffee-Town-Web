@@ -602,8 +602,8 @@ const Shift = () => {
           </div>
         </div>
       ) : null}
-      <aside className="inventory">
-        <small>숫자키 1~9 선택</small>
+      <aside className="inventory" data-count={shift.inventory.length}>
+              <small>숫자키 1~9 선택</small>
         {shift.inventory.length ? (
           shift.inventory.map((item, index) => {
             const tier = recipeTierOf(item.itemId);
