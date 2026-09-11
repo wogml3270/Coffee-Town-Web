@@ -80,7 +80,9 @@ export const stationUnlockStage: Readonly<Record<StationId, number>> = {
   steam: 1,
   ice: 1,
   sparkling: 5,
-  coldBrew: 10,
+  // The tower is available from the first stage; the finished cold-brew
+  // drinks remain locked until their menu stages.
+  coldBrew: 1,
   blender: 12,
   serve: 1,
 };
@@ -429,6 +431,7 @@ export const recipeTierGroups = {
     "chocolate_sauce",
     "caramel_sauce",
     "matcha_powder",
+    "cold_brew_concentrate",
   ],
   2: [
     "espresso",
@@ -439,7 +442,6 @@ export const recipeTierGroups = {
     "chocolate_cup",
     "yuzu_base",
     "oat_cup",
-    "cold_brew_concentrate",
   ],
   3: [
     "espresso_cup",
@@ -497,7 +499,7 @@ const recipeStages: Partial<Record<ItemId, number>> = {
   matcha_powder: 8,
   matcha_cup: 8,
   chocolate_cup: 9,
-  cold_brew_concentrate: 10,
+  cold_brew_concentrate: 1,
   cold_brew_base: 10,
   oat_milk: 11,
   vanilla_bean: 11,
