@@ -22,6 +22,14 @@ export const RecipeBook = () => {
         setOpen(!open);
       }
       if (event.key === "Escape") setOpen(false);
+      if (!open) return;
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        event.preventDefault();
+        setTab((current) => {
+          const direction = event.key === "ArrowRight" ? 1 : -1;
+          return (((current + direction + 5 - 1) % 5) + 1) as RecipeTier;
+        });
+      }
     };
     window.addEventListener("keydown", toggleRecipeBook, true);
     return () => window.removeEventListener("keydown", toggleRecipeBook, true);

@@ -487,6 +487,8 @@ const Shift = () => {
   const [menuIntroOpen, setMenuIntroOpen] = useState(() => !seenMenuStages.includes(shift.stageId));
   const [earlyCloseOpen, setEarlyCloseOpen] = useState(false);
   const [automationMenuOpen, setAutomationMenuOpen] = useState(false);
+  const [fridgeSelection, setFridgeSelection] = useState(0);
+  const [waterSelection, setWaterSelection] = useState<0 | 1>(0);
   const newlyAvailableMenus = menuCatalog.filter(({ stage }) => stage === shift.stageId);
   const activeRuntime = shift.activeWork ? shift.stations[shift.activeWork] : null;
   const workProgress = activeRuntime?.total
@@ -504,15 +506,58 @@ const Shift = () => {
     soundPlayer.setFever(shift.fever > 0);
   }, [shift.fever]);
   useEffect(() => {
+    if (!fridgeOpen) return;
+    const firstAvailable = fridgeIngredients.findIndex(({ minStage }) => shift.stageId >= minStage);
+    setFridgeSelection(firstAvailable >= 0 ? firstAvailable : 0);
+  }, [fridgeOpen, shift.stageId]);
+  useEffect(() => {
+    if (!fridgeOpen) return;
+    const choose = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeFridge();
+        return;
+      }
+      const isSpace = event.code === "Space" || event.key === " ";
+      if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key) && !isSpace) return;
+      event.preventDefault();
+      if (isSpace) {
+        const ingredient = fridgeIngredients[fridgeSelection];
+        if (ingredient && shift.stageId >= ingredient.minStage) takeFromFridge(ingredient.itemId);
+        return;
+      }
+      const columns = window.matchMedia("(max-width: 700px)").matches ? 2 : 3;
+      const delta = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" ? -columns : columns;
+      setFridgeSelection((current) => {
+        let next = Math.max(0, Math.min(fridgeIngredients.length - 1, current + delta));
+        while (next >= 0 && next < fridgeIngredients.length && shift.stageId < fridgeIngredients[next]!.minStage) {
+          next += delta < 0 ? -1 : 1;
+        }
+        return next >= 0 && next < fridgeIngredients.length ? next : current;
+      });
+    };
+    window.addEventListener("keydown", choose);
+    return () => window.removeEventListener("keydown", choose);
+  }, [closeFridge, fridgeOpen, fridgeSelection, shift.stageId, takeFromFridge]);
+  useEffect(() => {
+    if (waterOpen) setWaterSelection(0);
+  }, [waterOpen]);
+  useEffect(() => {
     if (!waterOpen) return;
     const chooseWater = (event: KeyboardEvent) => {
-      if (event.key === "1") takeWater("hot_water");
-      if (event.key === "2") takeWater("cold_water");
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+        event.preventDefault();
+        setWaterSelection((current) => (current === 0 ? 1 : 0));
+      }
+      if (event.code === "Space" || event.key === " ") {
+        event.preventDefault();
+        takeWater(waterSelection === 0 ? "hot_water" : "cold_water");
+      }
       if (event.key === "Escape") closeWater();
     };
     window.addEventListener("keydown", chooseWater);
     return () => window.removeEventListener("keydown", chooseWater);
-  }, [closeWater, takeWater, waterOpen]);
+  }, [closeWater, takeWater, waterOpen, waterSelection]);
   useEffect(() => {
     if (!newDiscovery) return;
     const timeout = window.setTimeout(clearDiscovery, 3200);
@@ -540,23 +585,6 @@ const Shift = () => {
     const timeout = window.setTimeout(() => setEarnedGold(null), 1800);
     return () => window.clearTimeout(timeout);
   }, [earnedGold]);
-  useEffect(() => {
-    if (!fridgeOpen) return;
-    const choose = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        closeFridge();
-        return;
-      }
-      if (!/^[0-9]$/.test(event.key)) return;
-      event.preventDefault();
-      const index = event.key === "0" ? 9 : Number(event.key) - 1;
-      const ingredient = fridgeIngredients[index];
-      if (ingredient && shift.stageId >= ingredient.minStage) takeFromFridge(ingredient.itemId);
-    };
-    window.addEventListener("keydown", choose);
-    return () => window.removeEventListener("keydown", choose);
-  }, [closeFridge, fridgeOpen, shift.stageId, takeFromFridge]);
   return (
     <main className={`game-screen ${shift.fever ? "fever" : ""}`}>
       <Suspense
@@ -803,7 +831,7 @@ const Shift = () => {
           <div>
             <p>INGREDIENT FRIDGE</p>
             <h2>재료 꺼내기</h2>
-            <span>숫자키 1~9, 0 또는 터치로 재료를 선택하세요.</span>
+            <span>방향키로 재료를 고르고 Space로 선택하세요.</span>
             <div className="fridge-grid">
               {fridgeIngredients.map(({ itemId, minStage }, index) => {
                 const tier = recipeTierOf(itemId);
@@ -811,11 +839,11 @@ const Shift = () => {
                   <button
                     type="button"
                     key={itemId}
+                    className={index === fridgeSelection ? "selected" : ""}
                     disabled={shift.stageId < minStage}
                     style={{ "--tier-color": recipeTierMeta[tier].color } as CSSProperties}
                     onClick={() => takeFromFridge(itemId)}
                   >
-                    <i>{index === 9 ? 0 : index + 1}</i>
                     <ItemImage itemId={itemId} />
                     <b>{labels[itemId]}</b>
                   </button>
@@ -833,16 +861,14 @@ const Shift = () => {
           <div>
             <p>WATER DISPENSER</p>
             <h2>물을 선택하세요</h2>
-            <span>숫자키 1, 2 또는 터치로 선택할 수 있습니다.</span>
+            <span>방향키로 고르고 Space로 선택하세요.</span>
             <div className="fridge-grid water-grid">
-              <button type="button" onClick={() => takeWater("hot_water")}>
-                <i>1</i>
+              <button className={waterSelection === 0 ? "selected" : ""} type="button" onClick={() => takeWater("hot_water")}>
                 <ItemImage itemId="hot_water" />
                 <b>온수</b>
                 <small>뜨거운 음료용</small>
               </button>
-              <button type="button" onClick={() => takeWater("cold_water")}>
-                <i>2</i>
+              <button className={waterSelection === 1 ? "selected" : ""} type="button" onClick={() => takeWater("cold_water")}>
                 <ItemImage itemId="cold_water" />
                 <b>냉수</b>
                 <small>차가운 음료용</small>

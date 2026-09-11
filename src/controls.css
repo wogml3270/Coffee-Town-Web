@@ -921,6 +921,12 @@
   border-color: color-mix(in srgb, var(--tier-color) 58%, #b7d7cf);
   background: color-mix(in srgb, var(--tier-color) 9%, #fffaf0);
 }
+.fridge-grid button.selected {
+  border-width: 2px;
+  border-color: #477a6c;
+  background: #e2f1e9;
+  box-shadow: 0 0 0 3px #477a6c33;
+}
 .fridge-grid button i {
   position: absolute;
   top: 7px;
