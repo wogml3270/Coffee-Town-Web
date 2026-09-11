@@ -14,6 +14,7 @@ export type Upgrades = Readonly<{
   comboGuard: number;
   automation: number;
   autoServe: number;
+  autoPickup: number;
 }>;
 export type StationPhase = "idle" | "processing" | "ready";
 export type StationRuntime = Readonly<{
@@ -43,6 +44,7 @@ export type ShiftState = Readonly<{
   upgrades: Upgrades;
   automationEnabled: boolean;
   autoServeEnabled: boolean;
+  autoPickupEnabled: boolean;
   stageId: number;
   rewardMultiplier: number;
   seed: number;
@@ -61,6 +63,7 @@ export const defaultUpgrades: Upgrades = {
   comboGuard: 0,
   automation: 0,
   autoServe: 0,
+  autoPickup: 0,
 };
 const stationIds: readonly StationId[] = [
   "grinder",
@@ -178,6 +181,7 @@ export const createShift = (
     upgrades,
     automationEnabled: upgrades.automation > 0,
     autoServeEnabled: upgrades.autoServe > 0,
+    autoPickupEnabled: upgrades.autoPickup > 0,
     stageId: stage.id,
     rewardMultiplier: stage.rewardMultiplier,
     seed,
@@ -250,7 +254,18 @@ export const tick = (state: ShiftState): ShiftState => {
       return [id, { ...runtime, phase: "ready", remaining: 0 }];
     }),
   ) as Record<StationId, StationRuntime>;
-  const activeWork =
+  let inventory = state.inventory;
+  let autoCollected = false;
+  if (state.autoPickupEnabled && state.upgrades.autoPickup > 0) {
+    stationIds.forEach((station) => {
+      const runtime = stations[station];
+      if (runtime.phase !== "ready" || !runtime.output || inventory.length >= inventoryLimit) return;
+      inventory = [...inventory, { uid: uid(), itemId: runtime.output }];
+      stations[station] = idle();
+      autoCollected = true;
+    });
+  }
+  const nextActiveWork =
     state.activeWork && stations[state.activeWork].phase === "processing"
       ? state.activeWork
       : (stationIds.find((id) => stations[id].phase === "processing") ?? null);
@@ -258,9 +273,14 @@ export const tick = (state: ShiftState): ShiftState => {
     ...state,
     time: Math.max(0, state.time - 1),
     fever: Math.max(0, state.fever - 1),
+    inventory,
     stations,
-    activeWork,
-    notice: completedWork ? "작업 완료 · 설비에서 결과물을 회수하세요" : state.notice,
+    activeWork: nextActiveWork,
+    notice: autoCollected
+      ? "작업 완료 · 결과물을 자동 회수했습니다"
+      : completedWork
+        ? "작업 완료 · 설비에서 결과물을 회수하세요"
+        : state.notice,
   };
 };
 

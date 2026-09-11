@@ -408,10 +408,13 @@ const Shift = () => {
   const bankGold = useGame(({ bankGold }) => bankGold);
   const automationEnabled = useGame(({ shift }) => shift.automationEnabled);
   const autoServeEnabled = useGame(({ shift }) => shift.autoServeEnabled);
+  const autoPickupEnabled = useGame(({ shift }) => shift.autoPickupEnabled);
   const automationLevel = useGame(({ upgrades }) => upgrades.automation);
   const autoServeLevel = useGame(({ upgrades }) => upgrades.autoServe);
+  const autoPickupLevel = useGame(({ upgrades }) => upgrades.autoPickup);
   const setAutomationEnabled = useGame(({ setAutomationEnabled }) => setAutomationEnabled);
   const setAutoServeEnabled = useGame(({ setAutoServeEnabled }) => setAutoServeEnabled);
+  const setAutoPickupEnabled = useGame(({ setAutoPickupEnabled }) => setAutoPickupEnabled);
   const fridgeOpen = useGame(({ fridgeOpen }) => fridgeOpen);
   const closeFridge = useGame(({ closeFridge }) => closeFridge);
   const takeFromFridge = useGame(({ takeFromFridge }) => takeFromFridge);
@@ -593,6 +596,16 @@ const Shift = () => {
                 자동 서빙 {autoServeEnabled ? "ON" : "OFF"}
               </button>
             ) : null}
+            {autoPickupLevel > 0 ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={autoPickupEnabled ? "active" : ""}
+                onClick={() => setAutoPickupEnabled(!autoPickupEnabled)}
+              >
+                자동 회수 {autoPickupEnabled ? "ON" : "OFF"}
+              </button>
+            ) : null}
             <button className="mobile-menu-close" type="button" role="menuitem" onClick={() => setEarlyCloseOpen(true)}>
               조기 마감
             </button>
@@ -620,7 +633,7 @@ const Shift = () => {
         <button type="button" onClick={() => setEarlyCloseOpen(true)}>
           조기 마감
         </button>
-        {automationLevel > 0 || autoServeLevel > 0 ? (
+        {automationLevel > 0 || autoServeLevel > 0 || autoPickupLevel > 0 ? (
           <button
             className="mobile-automation-toggle"
             type="button"
@@ -631,7 +644,7 @@ const Shift = () => {
           </button>
         ) : null}
       </header>
-      {automationLevel > 0 || autoServeLevel > 0 ? (
+      {automationLevel > 0 || autoServeLevel > 0 || autoPickupLevel > 0 ? (
         <aside className={`automation-controls ${automationMenuOpen ? "open" : ""}`} aria-label="자동화 설정">
           <small>자동화</small>
           {automationLevel > 0 ? (
@@ -652,6 +665,16 @@ const Shift = () => {
               onClick={() => setAutoServeEnabled(!autoServeEnabled)}
             >
               자동 서빙 {autoServeEnabled ? "ON" : "OFF"}
+            </button>
+          ) : null}
+          {autoPickupLevel > 0 ? (
+            <button
+              type="button"
+              className={autoPickupEnabled ? "active" : ""}
+              aria-pressed={autoPickupEnabled}
+              onClick={() => setAutoPickupEnabled(!autoPickupEnabled)}
+            >
+              자동 회수 {autoPickupEnabled ? "ON" : "OFF"}
             </button>
           ) : null}
         </aside>

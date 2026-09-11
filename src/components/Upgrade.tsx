@@ -82,6 +82,12 @@ const UpgradeIcon = ({ id }: Readonly<{ id: UpgradeId }>) => {
         <path d="m12 15 3 3 6-6" />
       </>
     ),
+    autoPickup: (
+      <>
+        <path d="M5 7h22v18H5zM9 11h14M9 16h8" />
+        <path d="m12 29 4-4 4 4M16 25v-9" />
+      </>
+    ),
   };
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true">
