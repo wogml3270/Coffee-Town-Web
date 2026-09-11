@@ -26,10 +26,12 @@ button {
 }
 .title-screen {
   position: relative;
-  display: grid;
+  display: block;
   width: 100%;
+  min-height: 100dvh;
   height: 100%;
-  place-items: center;
+  overflow-y: auto;
+  padding: 18px 12px 28px;
   background: url("/assets/concepts/coffee-town-cafe-direction-v1.png") center/cover;
 }
 .title-shade {

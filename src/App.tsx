@@ -228,6 +228,46 @@ const LeaderboardModal = ({ close }: Readonly<{ close: () => void }>) => {
   );
 };
 
+const ControlsModal = ({ close }: Readonly<{ close: () => void }>) => {
+  const [tab, setTab] = useState<"desktop" | "mobile">("desktop");
+  return (
+    <section className="controls-modal" role="dialog" aria-modal="true" aria-labelledby="controls-title">
+      <div>
+        <button className="controls-modal-close" type="button" aria-label="조작법 닫기" onClick={close}>
+          ×
+        </button>
+        <p>HOW TO PLAY</p>
+        <h2 id="controls-title">조작법</h2>
+        <div className="controls-tabs" role="tablist" aria-label="조작 기기 선택">
+          <button className={tab === "desktop" ? "active" : ""} type="button" role="tab" onClick={() => setTab("desktop")}>
+            데스크톱
+          </button>
+          <button className={tab === "mobile" ? "active" : ""} type="button" role="tab" onClick={() => setTab("mobile")}>
+            모바일
+          </button>
+        </div>
+        {tab === "desktop" ? (
+          <div className="controls-list">
+            <p><b>이동</b><span>방향키</span></p>
+            <p><b>설비 작업</b><span>Space</span></p>
+            <p><b>재료 조합</b><span>Enter</span></p>
+            <p><b>재료 선택</b><span>숫자 1~9</span></p>
+            <p><b>재료 버리기</b><span>Backspace / Delete</span></p>
+          </div>
+        ) : (
+          <div className="controls-list">
+            <p><b>이동</b><span>카페 화면을 탭하세요</span></p>
+            <p><b>시점 회전</b><span>화면을 드래그하세요</span></p>
+            <p><b>설비 작업</b><span>하단 작업 버튼</span></p>
+            <p><b>재료 조합</b><span>하단 조합 버튼</span></p>
+            <p><b>재료 선택</b><span>인벤토리 카드를 탭하세요</span></p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
 const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
   const start = useGame(({ start }) => start);
   const openUpgrade = useGame(({ openUpgrade }) => openUpgrade);
@@ -239,6 +279,7 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
   const [nicknameOpen, setNicknameOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [rankingOpen, setRankingOpen] = useState(false);
+  const [controlsOpen, setControlsOpen] = useState(false);
   useEffect(() => {
     soundPlayer.startLobbyMusic();
     const resume = () => soundPlayer.startLobbyMusic();
@@ -265,6 +306,12 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
     <main className="title-screen">
       <div className="title-shade" />
       <div className="title-steam" />
+      <header className="lobby-topbar">
+        <div className="lobby-topbar-actions">
+          <RecipeBook />
+          <button type="button" onClick={() => setControlsOpen(true)}>조작법</button>
+        </div>
+      </header>
       <section className="title-card lobby-card">
         <div className="lobby-profile">
           {profile ? (
@@ -347,11 +394,11 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
             랭킹
           </button>
         </div>
-        <small>이동 WASD/방향키 · 작업 SPACE · 조합 ENTER</small>
       </section>
       {nicknameOpen ? <NicknameModal profile={profile} close={() => setNicknameOpen(false)} /> : null}
       {profileOpen ? <ProfileModal profile={profile} close={() => setProfileOpen(false)} /> : null}
       {rankingOpen ? <LeaderboardModal close={() => setRankingOpen(false)} /> : null}
+      {controlsOpen ? <ControlsModal close={() => setControlsOpen(false)} /> : null}
     </main>
   );
 };
@@ -852,6 +899,7 @@ const Shift = () => {
         <strong>{shift.fever ? `FEVER ${shift.fever}s · x3` : `COMBO ${shift.combo}/${feverTarget}`}</strong>
         <span>{shift.notice} · 클릭 이동 · 드래그 시점 회전</span>
       </footer>
+      <RecipeBook />
     </main>
   );
 };
@@ -917,7 +965,6 @@ const GameApp = () => {
           ) : null}
         </aside>
       ) : null}
-      {screen === "title" || screen === "shift" ? <RecipeBook /> : null}
     </>
   );
 };

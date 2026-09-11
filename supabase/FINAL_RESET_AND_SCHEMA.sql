@@ -259,18 +259,19 @@ insert into public.upgrade_categories (id, name, display_order, color) values
 insert into public.upgrade_nodes
   (id, category_id, name, description, effect_key, max_level, position_x, position_y, is_premium)
 values
-  ('speed', 'equipment', '설비 정비', '모든 설비의 제조 시간을 단계마다 12% 단축합니다.', 'speed', 5, 0, 0, false),
-  ('espressoSpeed', 'equipment', '에스프레소 튜닝', '그라인더·에스프레소 머신·스팀·콜드브루 제조 시간을 단계마다 추가 5% 단축합니다.', 'espressoSpeed', 5, 1, 0, false),
-  ('coldDrinkSpeed', 'equipment', '콜드 바 튜닝', '제빙기·탄산수 머신·블렌더 제조 시간을 단계마다 추가 5% 단축합니다.', 'coldDrinkSpeed', 5, 2, 0, false),
-  ('movement', 'barista', '이동 훈련', '바리스타의 기본 이동속도를 단계마다 10% 높입니다.', 'movement', 5, 0, 1, false),
+  ('speed', 'equipment', '설비 정비', '모든 설비의 제조 시간을 단계마다 12% 단축합니다.', 'speed', 10, 0, 0, false),
+  ('espressoSpeed', 'equipment', '에스프레소 튜닝', '그라인더·에스프레소 머신·스팀·콜드브루 제조 시간을 단계마다 추가 5% 단축합니다.', 'espressoSpeed', 10, 1, 0, false),
+  ('coldDrinkSpeed', 'equipment', '콜드 바 튜닝', '제빙기·탄산수 머신·블렌더 제조 시간을 단계마다 추가 5% 단축합니다.', 'coldDrinkSpeed', 10, 2, 0, false),
+  ('movement', 'barista', '이동 훈련', '바리스타의 기본 이동속도를 단계마다 10% 높입니다.', 'movement', 10, 0, 1, false),
   ('multitask', 'barista', '멀티태스킹', '설비 작동 중에도 이동하여 다음 작업을 준비합니다.', 'multitask', 1, 1, 1, false),
-  ('feverCharge', 'fever', '피버 충전', '2단계마다 피버 발동에 필요한 연속 주문 수를 1회 줄입니다.', 'feverCharge', 5, 0, 2, false),
-  ('feverDuration', 'fever', '피버 지속', '피버 지속시간을 단계마다 3초 연장합니다.', 'feverDuration', 5, 1, 2, false),
-  ('feverProfit', 'fever', '피버 매출 증폭', '피버 중 주문 골드 배율을 단계마다 0.35배 추가합니다.', 'feverProfit', 5, 2, 2, false),
-  ('tips', 'service', '서비스 교육', '모든 주문의 팁과 정산 골드를 단계마다 6% 높입니다.', 'tips', 5, 0, 3, false),
-  ('comboGuard', 'service', '서비스 회복', '오서빙 시 콤보 손실을 줄이고 최종 단계에서 완전히 보호합니다.', 'comboGuard', 2, 1, 3, false),
+  ('feverCharge', 'fever', '피버 충전', '2단계마다 피버 발동에 필요한 연속 주문 수를 1회 줄입니다.', 'feverCharge', 10, 0, 2, false),
+  ('feverDuration', 'fever', '피버 지속', '피버 지속시간을 단계마다 3초 연장합니다.', 'feverDuration', 10, 1, 2, false),
+  ('feverProfit', 'fever', '피버 매출 증폭', '피버 중 주문 골드 배율을 단계마다 0.35배 추가합니다.', 'feverProfit', 10, 2, 2, false),
+  ('tips', 'service', '서비스 교육', '모든 주문의 팁과 정산 골드를 단계마다 6% 높입니다.', 'tips', 10, 0, 3, false),
+  ('comboGuard', 'service', '서비스 회복', '오서빙 시 콤보 손실을 줄이고 최종 단계에서 완전히 보호합니다.', 'comboGuard', 5, 1, 3, false),
   ('automation', 'automation', '오토 바리스타 모듈', '발견한 유효 레시피의 재료가 모이면 자동으로 조합합니다.', 'automation', 1, 0, 4, true),
-  ('autoServe', 'automation', '스마트 픽업 시스템', '현재 주문과 일치하는 완성 음료를 자동으로 서빙합니다.', 'autoServe', 1, 1, 4, true);
+  ('autoServe', 'automation', '스마트 픽업 시스템', '현재 주문과 일치하는 완성 음료를 자동으로 서빙합니다.', 'autoServe', 1, 1, 4, true),
+  ('autoPickup', 'automation', '설비 자동 회수', '설비가 완료되면 결과물을 자동으로 인벤토리에 넣습니다.', 'autoPickup', 1, 2, 4, true);
 
 insert into public.upgrade_levels (upgrade_id, level, cost, effect_value, effect_unit)
 select definition.id, generated_level, definition.base_cost * generated_level,
@@ -285,14 +286,18 @@ from (values
   ('feverProfit', 45000::bigint, 0.35::numeric, 'multiplier'),
   ('tips', 9000::bigint, 6::numeric, 'percent')
 ) as definition(id, base_cost, effect_per_level, unit)
-cross join generate_series(1, 5) as generated_level;
+cross join generate_series(1, 10) as generated_level;
 
 insert into public.upgrade_levels (upgrade_id, level, cost, effect_value, effect_unit) values
   ('multitask', 1, 180000, 1, 'unlock'),
   ('comboGuard', 1, 120000, 1, 'combo'),
   ('comboGuard', 2, 650000, 2, 'combo'),
+  ('comboGuard', 3, 1400000, 3, 'combo'),
+  ('comboGuard', 4, 2600000, 4, 'combo'),
+  ('comboGuard', 5, 4500000, 5, 'combo'),
   ('automation', 1, 10000000, 1, 'unlock'),
-  ('autoServe', 1, 50000000, 1, 'unlock');
+  ('autoServe', 1, 50000000, 1, 'unlock'),
+  ('autoPickup', 1, 24000000, 1, 'unlock');
 
 insert into public.upgrade_prerequisites (upgrade_id, required_upgrade_id, required_level) values
   ('espressoSpeed', 'speed', 2),
@@ -307,7 +312,8 @@ insert into public.upgrade_prerequisites (upgrade_id, required_upgrade_id, requi
   ('automation', 'tips', 3),
   ('autoServe', 'automation', 1),
   ('autoServe', 'tips', 5),
-  ('autoServe', 'feverProfit', 3);
+  ('autoServe', 'feverProfit', 3),
+  ('autoPickup', 'automation', 1);
 
 alter table public.upgrade_categories enable row level security;
 alter table public.upgrade_nodes enable row level security;
