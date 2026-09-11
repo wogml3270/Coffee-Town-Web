@@ -127,9 +127,14 @@ export class ProgressSync {
         this.apply(progress);
         this.operation = null;
         this.update("ready");
-      } catch {
-        if (this.current(userId, generation))
-          this.update("error", "영업 기록을 저장하지 못했습니다. 다시 시도하면 이어서 저장합니다.");
+      } catch (reason) {
+        if (this.current(userId, generation)) {
+          const message =
+            reason instanceof Error && reason.message === "SETTLEMENT_FUNCTION_NOT_DEPLOYED"
+              ? "정산 서버가 아직 배포되지 않았습니다. 관리자에게 Edge Function 배포를 요청하세요."
+              : "영업 기록을 저장하지 못했습니다. 다시 시도하면 이어서 저장합니다.";
+          this.update("error", message);
+        }
       }
     };
     this.operation = run;

@@ -19,5 +19,10 @@ export const beginShiftSession = async (stage: number): Promise<ShiftSession> =>
 };
 export const settleShiftSession = async (receipt: ShiftReceipt): Promise<void> => {
   const { data, error } = await supabase.functions.invoke("settle-shift", { body: receipt });
-  if (error || !data?.settled) throw error ?? new Error("SHIFT_NOT_SETTLED");
+  if (error) {
+    const response = (error as { context?: { status?: number } }).context;
+    if (response?.status === 404) throw new Error("SETTLEMENT_FUNCTION_NOT_DEPLOYED");
+    throw error;
+  }
+  if (!data?.settled) throw new Error("SHIFT_NOT_SETTLED");
 };
