@@ -822,7 +822,7 @@ const GameApp = () => {
           ) : null}
         </aside>
       ) : null}
-      {screen !== "upgrade" ? <RecipeBook /> : null}
+      {screen === "title" || screen === "shift" ? <RecipeBook /> : null}
     </>
   );
 };
