@@ -1262,7 +1262,7 @@
     position: absolute;
     z-index: 12;
     right: 62px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    bottom: 242px;
     left: auto;
     display: flex;
     gap: 6px;
@@ -2089,7 +2089,7 @@
   .recipe-book {
     top: auto;
     right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom));
+    bottom: 242px;
   }
   .recipe-book.title {
     top: max(12px, env(safe-area-inset-top));
