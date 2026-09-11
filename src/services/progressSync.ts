@@ -60,12 +60,22 @@ export class ProgressSync {
       if (!this.current(userId, generation)) return;
       this.update("loading", "계정 진행도를 불러오고 있습니다");
       try {
-        await this.flush(userId, generation);
         const progress = await this.api.load(userId);
         if (!this.current(userId, generation)) return;
         this.apply(progress);
         this.operation = null;
         this.update("ready");
+        // A stale or temporarily unavailable settlement endpoint must not prevent
+        // the account's existing progress from loading. Keep the receipt queued.
+        try {
+          await this.flush(userId, generation);
+          if (!this.current(userId, generation)) return;
+          const refreshed = await this.api.load(userId);
+          if (this.current(userId, generation)) this.apply(refreshed);
+        } catch {
+          if (this.current(userId, generation))
+            this.update("ready", "미전송 영업 기록은 연결이 복구되면 다시 저장합니다.");
+        }
       } catch {
         if (this.current(userId, generation))
           this.update("error", "진행도를 불러오지 못했습니다. 연결을 확인한 뒤 다시 시도하세요.");

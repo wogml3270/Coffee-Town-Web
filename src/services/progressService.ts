@@ -19,11 +19,18 @@ export const loadProgress = async (userId: string): Promise<CloudProgress> => {
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("PROGRESS_NOT_FOUND");
-  const relationalUpgrades = await loadPlayerUpgrades(userId);
+  let relationalUpgrades: Partial<Upgrades> = {};
+  try {
+    relationalUpgrades = await loadPlayerUpgrades(userId);
+  } catch (upgradeError) {
+    // Older deployments may not have the relational upgrade tables yet. The
+    // JSON snapshot remains a valid read-only fallback until that migration lands.
+    console.warn("업그레이드 테이블을 읽지 못해 진행도 스냅샷을 사용합니다.", upgradeError);
+  }
   return {
     gold: Number(data.gold),
     unlockedStage: data.unlocked_stage,
-    upgrades: relationalUpgrades,
+    upgrades: { ...(data.upgrades as Partial<Upgrades>), ...relationalUpgrades },
     discoveredRecipes: (data.discovered_recipes ?? []) as ItemId[],
     seenMenuStages: (data.seen_menu_stages ?? []) as number[],
   };

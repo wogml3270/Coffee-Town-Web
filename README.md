@@ -16,7 +16,7 @@ Three.js와 React Three Fiber로 제작한 3D 카페 운영 게임입니다. 플
 - 게임 진행도, 업그레이드, 레시피, 점수·랭킹 테이블은 최종 스키마 기준으로 초기화됨
 - 진행도 동기화·영업 정산·업그레이드 구매는 계정별 동기화 큐와 서버 검증 정산을 사용함
 - 전체 재료·가공 재료·베이스·완성 음료 **54종**에 SVG 아이콘이 있음
-- 마지막 검증: Vitest **48개 통과**, TypeScript 검사 및 Vite 프로덕션 빌드 성공
+- 마지막 검증: Vitest **49개 통과**, TypeScript 검사 및 Vite 프로덕션 빌드 성공
 - 초기 JavaScript 청크는 약 **477 kB**이며 3D 장면과 Three.js는 지연·분리 로딩함
 
 다음 작업자는 작업을 시작하기 전에 반드시 아래를 확인해야 합니다.
@@ -348,7 +348,7 @@ http://localhost:5173/auth/callback
 
 ## 검증과 알려진 기술 부채
 
-- `npm test`: 마지막 실행에서 48개 테스트 통과
+- `npm test`: 마지막 실행에서 49개 테스트 통과
 - `npm run build`: TypeScript와 Vite 빌드 성공
 - Vite 빌드 결과 초기 JS 청크는 약 477 kB이며 3D 장면은 별도 청크로 분리됨
 - 서버 정산을 사용하려면 운영 Supabase에 verified settlement migration과 Edge Function 배포가 필요함
