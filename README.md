@@ -1,139 +1,386 @@
 # Coffee Town Three
 
-현재 버전: **0.5.0 — Business Day & Recipe Archive Update**
+Three.js와 React Three Fiber로 제작한 3D 카페 운영 게임입니다. 플레이어는 카페를 이동하며 설비에서 재료를 생산하고, 레시피에 맞게 조합해 손님에게 판매합니다.
 
-Coffee Town을 Three.js·React Three Fiber로 처음부터 다시 구축하는 독립 프로토타입입니다. 기존 Unity·React 저장소와 연결되지 않으며, 검증 뒤 인증·Vercel·Supabase를 이전할 수 있도록 Local-First 구조로 구성합니다.
+현재 패키지 버전은 **0.6.0**이며 공식 배포 주소는 [coffee-town-three.vercel.app](https://coffee-town-three.vercel.app)입니다.
+
+## 다음 개발자를 위한 현재 상태
+
+마지막 인수인계 기준일은 **2026-09-11**입니다.
+
+- 작업 브랜치: `main`
+- 원격 저장소: `git@github.com:wogml3270/Coffee-Town-Web.git`
+- Supabase 프로젝트: `https://bsbtwhuykfvtcftnbqlm.supabase.co`
+- `supabase/FINAL_RESET_AND_SCHEMA.sql` 원격 DB 적용 완료
+- 기존 Supabase Auth 계정과 Google·Kakao OAuth 설정은 유지됨
+- 게임 진행도, 업그레이드, 레시피, 점수·랭킹 테이블은 최종 스키마 기준으로 초기화됨
+- 현재 작업 트리에는 아직 커밋되지 않은 수정 및 신규 파일이 많음
+- 마지막 검증: Vitest **45개 통과**, TypeScript 검사 및 Vite 프로덕션 빌드 성공
+- 빌드 시 메인 JavaScript 청크가 500 kB를 넘는다는 경고가 남아 있음
+
+다음 작업자는 작업을 시작하기 전에 반드시 아래를 확인해야 합니다.
+
+```bash
+git status --short
+git diff --check
+npm test
+npm run build
+```
+
+현재 변경사항을 임의로 되돌리거나 과거 SQL 마이그레이션을 다시 실행하면 안 됩니다. 먼저 현재 diff를 검토한 뒤 하나의 기준 커밋으로 정리하는 것이 안전합니다.
+
+## 빠른 실행
+
+요구 사항은 최신 LTS Node.js와 npm입니다.
 
 ```bash
 npm install
-npm run assets:generate
 npm run dev
 ```
 
-`.env.local`에는 다음 공개 클라이언트 환경 변수를 설정합니다.
+GLB 원본 생성 스크립트를 수정했거나 모델을 모두 다시 만들 때만 다음 명령을 실행합니다.
 
 ```bash
-VITE_SUPABASE_URL=https://bsbtwhuykfvtcftnbqlm.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+npm run assets:generate
 ```
 
-신규 설치는 `supabase/migrations/202608310001_profiles_and_progress.sql`부터 날짜 순서대로 실행합니다. 기존 DB에는 `supabase/migrations/202609020001_recipe_combinations.sql`을 추가 실행하면 게임 조합법 32개가 DB에 저장됩니다. 클라이언트는 로비에서 조합법을 한 번 읽고 영업 중에는 로컬 스냅샷만 사용하며, 조회 실패 시 번들 기본값으로 안전하게 대체합니다.
+이 명령은 `public/assets/models/`의 생성형 GLB 파일을 덮어쓰므로, 단순 실행이나 UI 작업 중에는 실행할 필요가 없습니다.
 
-배포 주소: **https://coffee-town-three.vercel.app**
+사용 가능한 명령은 다음과 같습니다.
 
-Google OAuth 설정:
+```bash
+npm run dev          # Vite 개발 서버
+npm test             # Vitest 전체 테스트
+npm run build        # TypeScript 검사 + 프로덕션 빌드
+npm run format       # Prettier 적용
+npm run format:check # 포맷 검사
+npm run preview      # 프로덕션 빌드 미리보기
+```
 
-- Google Cloud 승인된 리디렉션 URI: `https://bsbtwhuykfvtcftnbqlm.supabase.co/auth/v1/callback`
-- Supabase Site URL: `https://coffee-town-three.vercel.app`
-- Supabase Redirect URLs: `https://coffee-town-three.vercel.app/auth/callback`, 로컬 개발용 `http://localhost:5173/auth/callback`
-- Vercel SPA 콜백은 `vercel.json` rewrite가 처리합니다.
+## 환경 변수
 
-Kakao OAuth 설정:
+`.env.example`을 복사해 `.env.local`을 만듭니다.
 
-- Kakao Developers Redirect URI: `https://bsbtwhuykfvtcftnbqlm.supabase.co/auth/v1/callback`
-- Kakao Developers Web 도메인: `https://coffee-town-three.vercel.app`
-- Supabase Authentication Providers에서 Kakao를 활성화하고 REST API Key와 Client Secret을 입력합니다.
-- 닉네임·프로필 사진을 사용하려면 Kakao 동의항목의 프로필 정보를 활성화합니다.
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
+```
+
+`.env.local`은 Git에 커밋하지 않습니다. 브라우저에 노출되면 안 되는 `service_role` 키도 프론트엔드 환경 변수에 절대 넣지 않습니다.
+
+## 기술 구성
+
+- React
+- TypeScript
+- Vite
+- Three.js
+- React Three Fiber
+- React Three Drei
+- Zustand
+- Supabase Auth·Postgres·RPC
+- Vitest
+- Prettier
+
+## 주요 코드 구조
+
+```text
+src/
+├── App.tsx                         화면 전환, HUD, 모달, 인벤토리, 로비
+├── controls.css                    게임 HUD·모달·인벤토리·성장 트리 스타일
+├── styles.css                      전역 화면·로비 스타일
+├── audio/
+│   └── soundPlayer.ts              BGM 전환과 Web Audio 효과음
+├── game/
+│   ├── catalog.ts                  아이템, 메뉴, 설비, 조합법, 단계 색상
+│   ├── rules.ts                    영업·설비·조합·서빙·점수 순수 함수
+│   ├── store.ts                    Zustand 게임 상태와 Local-First 정산
+│   ├── movement.ts                 이동과 충돌 계산
+│   └── upgradeTree.ts              업그레이드 노드·가격·선행 조건
+├── scene/
+│   └── CafeScene.tsx               3D 맵, 카메라, 캐릭터, 손님, 설비
+└── services/
+    ├── authService.ts              Google·Kakao OAuth와 프로필
+    ├── progressService.ts          로그인 사용자 진행도 동기화
+    ├── recipeService.ts            DB·코드 조합법 병합
+    ├── upgradeService.ts           업그레이드 카탈로그와 구매 RPC
+    ├── scoreService.ts             영업 점수 저장 RPC
+    ├── rankingService.ts           랭킹 조회 RPC
+    └── supabaseClient.ts           Supabase 브라우저 클라이언트
+
+public/assets/
+├── audio/                          HYP MUSIC BGM
+├── concepts/                       카페 비주얼 방향 이미지
+└── models/                         스테이지·설비·캐릭터 GLB
+
+supabase/
+├── FINAL_RESET_AND_SCHEMA.sql      현재 DB의 단일 최종 기준 스키마
+├── RESET_WARNING.md                초기화 범위와 주의사항
+└── migrations/                     개발 이력용 과거 증분 SQL
+```
+
+## 데이터 저장 원칙
+
+게임은 **Local-First** 방식입니다.
+
+- 비로그인 사용자는 진행도를 브라우저 로컬 스토리지에만 저장합니다.
+- 로그인하면 게스트 로컬 진행도를 제거하고 로그인 계정의 DB 진행도만 사용합니다.
+- 영업 중 설비 작동, 인벤토리, 조합, 주문 처리는 Supabase를 호출하지 않습니다.
+- 정상 마감 또는 조기 마감 시 최종 골드와 진행도를 한 번 비동기 저장합니다.
+- 정상 마감은 골드를 보존하고 다음 스테이지를 해금합니다.
+- 조기 마감은 현재까지 번 골드만 보존하고 다음 스테이지는 해금하지 않습니다.
+- 업그레이드 구매는 `purchase_upgrade` RPC가 선행 조건 검사, 골드 차감, 레벨 상승을 한 트랜잭션으로 처리합니다.
+- 영업 점수는 `record_shift_result`, 랭킹은 `get_leaderboard` RPC를 사용합니다.
+
+## Supabase 최종 스키마
+
+원격 DB에는 [FINAL_RESET_AND_SCHEMA.sql](./supabase/FINAL_RESET_AND_SCHEMA.sql)이 적용된 상태입니다. 과거 `supabase/migrations/` 파일을 다시 실행하지 마십시오.
+
+최종 스키마의 주요 객체:
+
+- `profiles`: 이메일, 닉네임, 프로필 이미지
+- `user_progress`: 골드, 해금 스테이지, 발견 레시피, 메뉴 안내 확인 여부
+- `recipe_combinations`: 두 재료를 합치는 조합법
+- `upgrade_categories`, `upgrade_nodes`, `upgrade_levels`, `upgrade_prerequisites`
+- `player_upgrades`: 사용자별 업그레이드 레벨
+- `shift_results`: 개별 영업 결과
+- `stage_best_scores`: 사용자·스테이지별 최고 점수
+- `purchase_upgrade(text)`
+- `record_shift_result(...)`
+- `get_leaderboard(integer)`
+
+`auth.users`, `auth.identities`, Storage와 OAuth 설정은 최종 SQL의 삭제 대상이 아닙니다.
+
+스키마를 다시 초기화해야 할 때만 SQL Editor에서 `FINAL_RESET_AND_SCHEMA.sql` 전체를 한 번 실행합니다. 실행 시 닉네임, 골드, 스테이지, 발견 레시피, 업그레이드, 점수와 랭킹이 모두 삭제됩니다.
+
+## OAuth 및 배포 설정
+
+공식 도메인은 `coffee-town-three.vercel.app`입니다.
+
+Google Cloud와 Kakao Developers의 공급자 콜백 URI:
+
+```text
+https://bsbtwhuykfvtcftnbqlm.supabase.co/auth/v1/callback
+```
+
+Supabase Auth URL Configuration:
+
+```text
+Site URL
+https://coffee-town-three.vercel.app
+
+Redirect URLs
+https://coffee-town-three.vercel.app/auth/callback
+http://localhost:5173/auth/callback
+```
+
+애플리케이션은 현재 origin의 `/auth/callback`을 `redirectTo`로 사용하며, Vercel의 SPA rewrite는 `vercel.json`에서 처리합니다.
+
+## 현재 게임 규칙
+
+- 스테이지는 총 15일입니다.
+- 첫 영업부터 아메리카노, 아이스 아메리카노, 카페라떼, 아이스 카페라떼가 등장합니다.
+- 이후 스테이지마다 메뉴가 하나씩 추가되어 최종적으로 18개 메뉴가 주문됩니다.
+- 신규 메뉴 안내는 게스트 또는 로그인 계정마다 해당 스테이지 최초 1회만 표시합니다.
+- 주문은 매 영업마다 무작위로 생성하며 최대 3명을 미리 대기시킵니다.
+- 한 영업은 현실 6분 동안 게임 시간 `09:00 → 21:00`로 진행됩니다.
+- 주문 다섯 번 연속 성공 시 기본 15초 피버가 발동합니다.
+- 피버 중 제조시간이 1초로 줄고, 이동속도가 증가하며, 설비 작동 중에도 이동할 수 있습니다.
+- 피버 주문 골드는 기본 3배이며 업그레이드 효과가 추가됩니다.
+- 골드와 별도로 영업 점수를 계산하고, 스테이지별 개인 최고 점수의 합계로 랭킹을 정합니다.
 
 ## 조작법
 
-- `WASD` 또는 방향키: 선택한 바리스타 이동
+### PC
+
+- `WASD` 또는 방향키: 카메라 기준 8방향 이동
+- 바닥 클릭: 클릭한 위치로 이동
+- 마우스 드래그: 카메라 회전
 - `Space`: 가까운 설비와 상호작용
-- `1`~`9`: 해당 번호 인벤토리 슬롯 직접 선택
-- 냉장고가 열린 동안 `1`~`9`, `0`: 최대 10개 재료 즉시 선택 (`Esc`: 닫기)
 - `Enter`: 선택 재료와 인벤토리의 유효한 재료 조합
-- 마우스 짧게 클릭: 클릭한 바닥 위치로 이동
-- 마우스 드래그: 3D 카메라 회전
-- 두 방향키 동시 입력: 카메라 기준 대각선 이동
-- 인벤토리 슬롯 클릭: 사용할 아이템 직접 선택
+- `1`~`9`: 인벤토리 슬롯 직접 선택
+- `Backspace` 또는 `Delete`: 선택 재료 삭제
+- `B` 또는 한글 입력 상태의 `ㅠ`: 레시피 도감 열기·닫기
+- 냉장고 패널 `1`~`9`, `0`: 해당 재료 꺼내기
+- `Esc`: 열린 냉장고 또는 모달 닫기
 
-스팀 완드는 별도 오브젝트가 아니라 에스프레소 머신에 결합되어 있습니다.
+### 모바일
 
-## 전용 GLB 에셋
+- 바닥 터치: 해당 위치로 이동
+- `작업`: 가까운 설비와 상호작용
+- `조합`: 선택한 인벤토리 재료 조합
+- 인벤토리 슬롯 터치: 재료 선택
+- 슬롯 우측 상단 `×`: 재료 삭제
 
-`public/assets/models/`에는 확장형 카페 셸, 설비와 캐릭터를 독립 GLB로 저장합니다. `scripts/generate-glb-assets.mjs`는 같은 에셋을 결정적으로 다시 생성하는 원본 빌드 스크립트입니다.
+## 설비와 제조
 
-현재 GLB 목록: 확장 카페 맵, 그라인더, 에스프레소 머신/일체형 스팀 완드, 컵 선반, 온수기, 냉수기, 통합 재료 냉장고, 제빙기, 탄산수 머신, 콜드브루 타워, 블렌더, 픽업 벨, 바리스타와 손님.
+설비는 `IDLE → PROCESSING → READY` 상태를 가집니다. 제조를 시작한 뒤 진행 게이지가 끝나면 같은 설비와 다시 상호작용해 결과물을 회수합니다. 결과 회수 후 별도 쿨타임은 없습니다.
 
-현재 플레이 버전에서는 우유 전용 냉장고와 개별 과일청 통을 하나의 바닥형 `ingredient-fridge.glb`로 통합했습니다. 냉장고 상호작용 패널에서 우유와 스테이지별 과일청을 즉시 꺼내며, 컵 선반 역시 제조 시간이나 재사용 대기시간 없이 바로 사용합니다. 설비 작업 완료 후 쿨타임은 없고, 업그레이드는 제조·이동 속도와 피버 진입·지속시간, 팁 보너스에 집중합니다.
+- 그라인더: 분쇄 원두
+- 에스프레소 머신: 분쇄 원두를 에스프레소로 추출
+- 일체형 스팀 완드: 우유를 스팀 밀크로 가공
+- 컵 선반: 컵 즉시 지급
+- 정수기: 뜨거운 물·차가운 물
+- 재료 냉장고: 우유, 오트밀크, 시럽, 청, 소스, 파우더, 바닐라빈
+- 제빙기: 얼음
+- 탄산수 머신: 탄산수
+- 콜드브루 타워: 콜드브루 원액
+- 블렌더: 선택한 맛 베이스와 인벤토리의 우유·얼음을 함께 소비
+- 픽업 벨: 선택한 완성 음료 서빙
 
-## 현재 플레이 루프
+스팀 완드는 독립 GLB가 아니라 에스프레소 머신에 결합된 연출을 사용합니다.
 
-1. 생성 설비 앞에서 `Space`를 눌러 제조를 시작하고, 완료 후 다시 눌러 결과물을 회수합니다.
-2. 작업 중에는 캐릭터 이동이 잠기며 설비의 회전 링·발광·진행률로 상태를 확인합니다.
-3. 재료를 선택하고 에스프레소 머신 또는 스팀 완드에서 가공합니다.
-4. 재료 하나를 선택하고 `Enter`를 눌러 인벤토리의 유효한 상대 재료와 조합합니다.
-5. 완성 음료를 선택하고 픽업 벨에서 `Space`를 눌러 주문을 완료합니다.
-6. 5콤보 달성 시 15초간 피버가 발동합니다.
+## 조합법 관리 규칙
 
-한 영업일은 현실 6분 동안 게임 시간 `09:00 → 21:00`로 진행됩니다. 21:00에 마감 정산 UI가 열리고 정상 마감하면 다음 영업일이 해금됩니다. `조기 마감`을 선택하면 그 시점까지 획득한 골드는 전액 보존되지만 다음 영업일은 해금되지 않습니다.
+조합법의 실제 코드 기준은 [catalog.ts](./src/game/catalog.ts)입니다.
 
-제조 설비는 `IDLE → PROCESSING → READY` 상태를 가지며 결과물을 회수하는 즉시 다시 사용할 수 있습니다. 주문과 연결된 손님은 카페로 입장해 카운터에서 기다리고, 음료를 받으면 퇴장한 뒤 다음 손님이 들어옵니다. 모바일에서는 바닥 탭 이동과 우측 하단 `작업`·`조합` 버튼을 사용합니다.
+- `recipeGroups`: `Enter`로 처리하는 두 재료 조합
+- `stationProcesses`: 설비가 처리하는 생산·가공 규칙
+- `menuCatalog`: 메뉴명, 해금 스테이지, 판매 가격과 전체 설명
+- `recipeTierGroups`: 인벤토리와 레시피 도감의 단계 색상
 
-## 메뉴 및 성장
+같은 결과물을 만드는 코드 조합이 있으면 코드 정의가 DB의 오래된 조합을 대체합니다. DB는 운영 중 추가되는 별도 결과물 조합을 공급할 수 있습니다.
 
-- 총 15개 영업일과 15개 실제 카페 메뉴
-- 따뜻한/아이스 아메리카노, 카페라떼, 아이스 라떼, 바닐라 라떼, 카페모카, 카라멜 마키아토
-- 레몬·자몽 에이드, 유자차, 말차·초콜릿 라떼, 콜드브루, 바닐라빈 오트 콜드브루, 카페모카 아이스 블렌디드
-- 각 영업일마다 신규 메뉴 하나와 필요한 냉장 재료·설비가 순차 해금
-- 레시피 도감은 미발견 메뉴를 `?`로 표시하고 최초 조합 성공 시 영구 공개
-- 업그레이드: 제조시간, 캐릭터 이동속도, 피버 진입 콤보, 피버 지속시간, 팁 보너스
-- 프리미엄 자동화: 50,000G로 해금하며, 획득한 재료가 유효한 레시피를 이루면 자동 조합
-- 영업일: 목표 잔 수 없이 09:00~21:00 자유 영업
+단계 색상 기준:
 
-피버 중에는 골드가 3배가 되고 제조시간이 즉시 단축되며, 설비가 작동하는 동안에도 캐릭터가 1.65배 속도로 움직일 수 있습니다. 로비·결과·업그레이드 화면은 `HYP - Full Of Sunshine`, 스테이지 1~~4, 5~~8, 9~12는 각각 다른 HYP MUSIC 테마곡을 사용합니다. 화면이 바뀌면 해당 테마로 즉시 교체되며 피버 진입 시 템포와 믹스가 강화됩니다. 전역 사운드 옵션에서 BGM을 끄고 켤 수 있으며 설정은 브라우저에 유지됩니다. 설비 시작·완료, 조합, 판매 동전, UI 버튼, 캐릭터 발걸음 효과음은 Web Audio API로 실시간 합성합니다.
+1. 초록색: 기본 재료
+2. 청록색: 1차 가공
+3. 보라색: 중간 베이스
+4. 주황색: 일반 완성 음료
+5. 금색: 시그니처·블렌디드 완성품
 
-## 음악 라이선스
+인벤토리 슬롯, 선택 강조, 번호 배지, 냉장고 버튼, 도감 탭과 레시피 카드가 같은 단계 색상을 사용합니다.
 
-게임에 포함된 음원은 HYP MUSIC이 제공한 곡입니다. 영상에 게임 화면 또는 음원을 사용할 경우 [CREDITS.md](./CREDITS.md)의 필수 출처 문구를 그대로 표기해야 합니다.
+대체 제조법은 도감에서 한 줄에 하나씩 표시합니다. 예를 들어 아이스 에스프레소는 다음 두 경로를 모두 허용합니다.
 
-전용 콘셉트 이미지는 `public/assets/concepts/coffee-town-cafe-direction-v1.png`에 보관합니다.
+```text
+- 에스프레소 컵 + 얼음
+- 얼음 컵 + 에스프레소
+```
+
+## 블렌더 규칙
+
+과거의 `모카 블렌딩 베이스`, `바닐라 블렌딩 베이스` 같은 별도 아이템은 제거했습니다. 현재 블렌더는 맛 베이스를 선택하고 우유와 얼음을 실제 인벤토리에서 추가로 찾아 세 재료를 모두 소비합니다.
+
+```text
+카페모카 아이스 블렌디드
+모카 베이스 + 우유 + 얼음 → 블렌더
+
+바닐라 아이스 블렌디드
+바닐라 베이스 + 우유 + 얼음 → 블렌더
+
+말차 아이스 블렌디드
+말차 베이스 + 우유 + 얼음 → 블렌더
+
+초콜릿 아이스 블렌디드
+초콜릿 베이스 + 우유 + 얼음 → 블렌더
+```
+
+사용 순서:
+
+1. 맛 베이스를 만든다.
+2. 우유와 얼음을 인벤토리에 준비한다.
+3. 맛 베이스 슬롯을 선택한다.
+4. 블렌더 앞에서 `Space` 또는 모바일 `작업` 버튼을 누른다.
+5. 제조 완료 후 블렌더와 다시 상호작용해 음료를 회수한다.
+
+우유 또는 얼음이 없으면 부족한 재료를 안내하고 어떤 재료도 소비하지 않습니다. 이 공정은 재료가 세 개이므로 `recipe_combinations`의 이진 DB 행이 아니라 `stationProcesses`에서 처리합니다.
+
+## 레시피 발견과 메뉴 안내
+
+- 스테이지가 열렸다고 레시피가 자동 공개되지는 않습니다.
+- 실제 조합에 처음 성공했을 때만 도감에 제조법이 공개됩니다.
+- 발견 상태는 게스트 로컬 저장 또는 로그인 사용자의 `discovered_recipes`에 저장됩니다.
+- 신규 메뉴 모달 확인 상태는 `seen_menu_stages`에 저장됩니다.
+- 로그인 계정은 여러 기기에서 DB 상태를 사용하고, 게스트는 현재 브라우저에만 저장됩니다.
+
+## 업그레이드와 랭킹
+
+업그레이드는 설비, 바리스타, 피버, 서비스, 자동화 트리로 나뉩니다.
+
+- 설비 정비
+- 에스프레소 튜닝
+- 콜드 바 튜닝
+- 이동 훈련
+- 멀티태스킹
+- 피버 충전·지속·매출 증폭
+- 서비스 교육·콤보 보호
+- 오토 바리스타 모듈: `10,000,000G`
+- 스마트 픽업 시스템: `50,000,000G`
+
+클라이언트의 기본 노드 정의는 [upgradeTree.ts](./src/game/upgradeTree.ts)에 있으며 로그인 사용자의 가격과 선행 조건은 Supabase 카탈로그를 불러옵니다.
+
+랭킹은 보유 골드가 아니라 각 스테이지의 개인 최고 영업 점수를 합산해 계산합니다. 주문 난이도, 제조 속도, 만족도, 콤보와 피버 보너스를 반영하며 실수와 재료 폐기는 최종 정산 점수에 영향을 줍니다.
+
+## 3D 에셋과 스테이지
+
+`public/assets/models/`에는 15개 스테이지 셸, 설비, 바리스타, 서로 다른 손님, 출입문과 테이블 GLB가 있습니다. `CafeScene.tsx`가 스테이지별 카페 셸과 설비·좌석 배치 변형을 선택합니다.
+
+에셋 생성 원본은 `scripts/generate-glb-assets.mjs`입니다. GLB를 직접 수정한 경우 이 스크립트를 실행하면 수동 수정이 덮어써질 수 있으므로 먼저 차이를 확인해야 합니다.
+
+## 음악과 라이선스
+
+현재 포함된 BGM:
+
+- HYP - Full Of Sunshine
+- HYP - What Happened
+- HYP - Spring Has Come
+- HYP - ggoomma song
+- HYP - Sugar In My Coffee
+
+로비·결과·업그레이드와 스테이지 구간에 맞춰 음악을 교체하며 피버 중에는 믹스가 강화됩니다. 브라우저 자동 재생 정책 때문에 최초 사용자 입력 전에는 소리가 재생되지 않을 수 있습니다.
+
+게임 영상이나 음원을 외부에 사용할 때는 [CREDITS.md](./CREDITS.md)의 필수 출처 문구를 그대로 표기해야 합니다.
+
+## 검증과 알려진 기술 부채
+
+- `npm test`: 마지막 실행에서 45개 테스트 통과
+- `npm run build`: TypeScript와 Vite 빌드 성공
+- Vite 빌드 결과 메인 JS 청크가 약 1.5 MB이며 코드 분할이 필요함
+- 최종 SQL은 원격 Supabase에 적용됐지만 실제 로그인·진행도 저장·업그레이드 구매·랭킹 RPC의 배포 환경 회귀 테스트가 필요함
+- 최근 블렌더와 레시피 단계 변경은 자동 테스트를 통과했지만 PC·모바일 실제 플레이 동선 QA가 필요함
+- UI와 3D 배치는 화면비마다 육안 검증해야 함
+- `public/assets/models/`에 생성 결과물이 많으므로 무관한 GLB를 일괄 재생성하지 말 것
+- 현재 작업 트리는 정리되지 않았으므로 변경 파일을 전부 검토하기 전 일괄 커밋하지 말 것
 
 ## 버전 기록
 
+### 0.6.0 — Cafe Growth Tree Update
+
+- 원형 아이콘 기반 설비·바리스타·피버·서비스·자동화 성장 트리
+- Supabase 업그레이드 카탈로그, 선행 조건과 원자적 구매 RPC
+- 영업 점수와 스테이지별 최고 기록 기반 랭킹
+- 설비 작업 HUD 진행 게이지
+- 레시피 도감과 인벤토리의 5단계 색상 체계
+- 조합 단계·명칭 재정리와 복수 제조 경로 표시
+- 실제 우유와 얼음을 소비하는 블렌더 3재료 공정
+- 단일 최종 Supabase 초기화 스키마
+
 ### 0.5.0 — Business Day & Recipe Archive Update
 
-- 목표 주문 수를 제거하고 09:00~21:00 6분 영업일 루프로 전환
-- 21시 정상 마감 시 다음 날 해금, 조기 마감 시 골드만 보존
-- 실제 카페 음료 15개와 단계별 신규 메뉴·재료·설비 해금
-- 미발견 조합을 물음표로 표시하는 레시피 도감과 Local-First 발견 저장
-- 주문과 연동되는 3D 손님 입장·대기·퇴장 동선
-- 냉수기, 콜드브루 타워, 블렌더 GLB 설비 추가
+- 09:00~21:00 영업 루프와 조기 마감
+- 15개 스테이지와 18개 메뉴
+- 실제 조합 성공 시 공개되는 레시피 도감
+- 3명 주문 대기열과 손님 입장·착석·음용·퇴장
 
 ### 0.4.0 — Social & Stage Music Update
 
-- Google 옆 Kakao OAuth 로그인 및 공통 PKCE 콜백 처리
-- 로그인 사용자 프로필 아이콘과 내 정보 모달
-- 공식 배포 주소를 `coffee-town-three.vercel.app`으로 통일
-- 냉장고 `1`~`9`, `0` 재료 선택과 입력 충돌 방지
-- HYP MUSIC 3곡을 스테이지 구간별 BGM으로 적용하고 피버 믹스 전환
-- `HYP - What Happened`를 로비·결과·업그레이드 전용 BGM으로 추가
-- 로비 테마를 `HYP - Full Of Sunshine`으로 교체하고 전역 BGM ON/OFF 옵션 추가
-- 영업 중 나가기 시 현재까지 획득한 골드를 안전하게 정산하고 중복 지급 방지
-- 설비 작동·완료 모션과 프로필·냉장고 UI 전환 애니메이션 강화
-- 음원 필수 출처 문구와 라이선스 문서 추가
+- Google·Kakao OAuth와 공통 PKCE 콜백
+- 로그인 프로필, 닉네임과 진행도 동기화
+- 스테이지·로비·피버 BGM과 볼륨 옵션
+- 공식 도메인을 `coffee-town-three.vercel.app`으로 통일
 
 ### 0.3.0 — Supabase Profile Update
 
-- Supabase publishable client와 PKCE 세션 연결
-- Google 소셜 로그인과 `/auth/callback` 처리
-- Google 프로필 사진·이메일 동기화 및 로비 프로필 카드
-- 최초 플레이 닉네임 설정 UI와 사용자별 닉네임 저장
-- `profiles`, `user_progress` 신규 SQL 스키마와 사용자 소유 RLS
-- 로그인 사용자의 골드·스테이지·업그레이드 Local-First 동기화
+- Supabase 브라우저 클라이언트와 사용자별 RLS
+- 게스트와 로그인 사용자의 저장 영역 분리
+- Local-First 영업 정산
 
 ### 0.2.0 — Sound & Automation Update
 
-- 카페 BGM과 피버 전용 BGM 전환
-- 설비·조합·동전·UI·발걸음 합성 효과음
-- 화면 진입, 주문 교체, 인벤토리 획득, 냉장고, 피버 UI 애니메이션
-- 50,000G 오토 바리스타 자동 조합 업그레이드
-- 총 12개 스테이지로 확장
-- 누적 보유 골드 HUD와 무작위 주문 흐름
+- 설비·조합·동전·UI·발걸음 효과음
+- 피버 모드와 자동 조합 업그레이드
 
 ### 0.1.0 — Playable 3D Prototype
 
-- React Three Fiber 기반 3D 카페와 캐릭터 이동
-- 설비 제조, 인벤토리, 레시피 조합, 주문 판매
-- 통합 재료 냉장고와 Local-First 진행 데이터
-- 스테이지·피버·기본 업그레이드 시스템
+- React Three Fiber 기반 카페와 캐릭터 이동
+- 설비 제조, 인벤토리 조합과 주문 판매

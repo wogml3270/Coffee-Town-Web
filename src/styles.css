@@ -105,7 +105,7 @@ button {
   z-index: 10;
   inset: max(10px, env(safe-area-inset-top)) 12px auto;
   display: grid;
-  grid-template-columns: 0.7fr 2fr 1fr auto;
+  grid-template-columns: 0.65fr 1.8fr 0.8fr 0.8fr auto;
   gap: 8px;
   width: calc(100% - 24px);
   pointer-events: none;
@@ -145,6 +145,60 @@ button {
 }
 .hud .order {
   border-left: 4px solid #e96f55;
+}
+.work-progress {
+  position: absolute;
+  z-index: 11;
+  top: max(78px, calc(env(safe-area-inset-top) + 68px));
+  left: 50%;
+  display: grid;
+  grid-template-columns: minmax(110px, auto) minmax(160px, 320px) 34px;
+  width: min(92vw, 620px);
+  transform: translateX(-50%);
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid #edca86aa;
+  border-radius: 14px;
+  background: #231814e8;
+  box-shadow: 0 10px 28px #0006;
+  color: #fff4df;
+  pointer-events: none;
+  animation: order-arrive 0.25s ease-out both;
+}
+.work-progress small,
+.work-progress strong {
+  display: block;
+}
+.work-progress small {
+  color: #c9aa7f;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+.work-progress strong {
+  margin-top: 1px;
+  font-size: 12px;
+}
+.work-progress-track {
+  height: 11px;
+  overflow: hidden;
+  border: 1px solid #8d7355;
+  border-radius: 999px;
+  background: #110d0b;
+}
+.work-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d88945, #ffd172);
+  box-shadow: 0 0 12px #ffc45b99;
+  transition: width 0.45s ease;
+}
+.work-progress > b {
+  color: #ffd070;
+  font-size: 11px;
+  text-align: right;
 }
 .notice {
   position: absolute;
@@ -210,7 +264,7 @@ button {
 .result-screen h1 {
   font-size: 42px;
 }
-.result-screen section div {
+.result-screen section > div {
   display: flex;
   flex-direction: column;
   margin: 28px 0;
@@ -219,10 +273,10 @@ button {
   background: white;
   box-shadow: 0 15px 40px rgba(62, 45, 31, 0.1);
 }
-.result-screen section div strong {
+.result-screen section > div > strong {
   font-size: 32px;
 }
-.result-screen section div span {
+.result-screen section > div > span {
   color: #8a918c;
   font-size: 12px;
 }
@@ -239,6 +293,12 @@ button {
   }
 }
 @media (max-width: 700px) {
+  .work-progress {
+    top: max(70px, calc(env(safe-area-inset-top) + 62px));
+    grid-template-columns: 90px minmax(80px, 1fr) 28px;
+    gap: 7px;
+    padding: 8px 10px;
+  }
   .title-card {
     margin: 0 16px;
     padding: 28px;
@@ -247,7 +307,7 @@ button {
     background-position: 62% center;
   }
   .hud {
-    grid-template-columns: 0.65fr 1.8fr 1fr;
+    grid-template-columns: 0.6fr 1.5fr 0.75fr 0.75fr;
   }
   .hud button {
     position: absolute;

@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2200" viewBox="0 0 2400 2200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff5de"/><stop offset="1" stop-color="#dfc391"/></linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#8b6b4a"/></marker>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <style>
+    text { font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; fill: #35271f; }
+    .title { font-size: 42px; font-weight: 900; }
+    .subtitle { font-size: 17px; font-weight: 700; fill: #755e49; }
+    .column { font-size: 23px; font-weight: 900; }
+    .edge { fill: none; stroke: #8b6b4a; stroke-width: 2; opacity: .48; }
+    .edge-label { font-size: 11px; font-weight: 800; fill: #9a5f2f; paint-order: stroke; stroke: #fff5de; stroke-width: 4px; }
+    .node { stroke-width: 2; filter: drop-shadow(0 3px 3px #6c4a2528); }
+    .source { fill: #f5ead0; stroke: #ad9366; }
+    .middle { fill: #edf2e5; stroke: #708c75; }
+    .final { fill: #fff8e9; stroke: #bd7643; stroke-width: 3; }
+    .node-label { font-size: 18px; font-weight: 900; }
+  </style>
+  <text x="60" y="58" class="title">COFFEE TOWN · 전체 제조 트리</text>
+  <text x="60" y="88" class="subtitle">실제 게임 데이터 기반 · 선 하나는 재료 투입 관계 · 대체 순서 모두 포함</text>
+  <text x="60" y="125" class="column">기본 재료·설비 생산물</text><text x="530" y="125" class="column">1차 조합</text><text x="1000" y="125" class="column">2차 조합</text><text x="1470" y="125" class="column">고급 중간 조합</text><text x="1940" y="125" class="column">완성 음료</text><path d="M900 1221 C945 1221,955 1127,1000 1127" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C686.5 1691,743.5 1127,1000 1127" class="edge" marker-end="url(#arrow)"/><path d="M1370 1127 C1626.5 1127,1683.5 845,1940 845" class="edge" marker-end="url(#arrow)"/><path d="M430 375 C1109.5 375,1260.5 845,1940 845" class="edge" marker-end="url(#arrow)"/><path d="M1370 1127 C1415 1127,1425 1268,1470 1268" class="edge" marker-end="url(#arrow)"/><path d="M430 939 C898 939,1002 1268,1470 1268" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C1156.5 1127,1213.5 1268,1470 1268" class="edge" marker-end="url(#arrow)"/><path d="M900 1221 C1156.5 1221,1213.5 1268,1470 1268" class="edge" marker-end="url(#arrow)"/><path d="M1840 1268 C1885 1268,1895 939,1940 939" class="edge" marker-end="url(#arrow)"/><path d="M430 1409 C1109.5 1409,1260.5 939,1940 939" class="edge" marker-end="url(#arrow)"/><path d="M1840 1268 C1885 1268,1895 1033,1940 1033" class="edge" marker-end="url(#arrow)"/><path d="M430 1127 C1109.5 1127,1260.5 1033,1940 1033" class="edge" marker-end="url(#arrow)"/><path d="M1370 1127 C1626.5 1127,1683.5 1503,1940 1503" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C1368 1033,1472 1503,1940 1503" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C945 1127,955 1033,1000 1033" class="edge" marker-end="url(#arrow)"/><path d="M430 1127 C686.5 1127,743.5 1033,1000 1033" class="edge" marker-end="url(#arrow)"/><path d="M1370 1033 C1626.5 1033,1683.5 1033,1940 1033" class="edge" marker-end="url(#arrow)"/><path d="M900 1221 C1368 1221,1472 1033,1940 1033" class="edge" marker-end="url(#arrow)"/><path d="M1370 1127 C1415 1127,1425 1174,1470 1174" class="edge" marker-end="url(#arrow)"/><path d="M430 657 C898 657,1002 1174,1470 1174" class="edge" marker-end="url(#arrow)"/><path d="M1840 1174 C1885 1174,1895 657,1940 657" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C1368 1033,1472 657,1940 657" class="edge" marker-end="url(#arrow)"/><path d="M1370 1127 C1415 1127,1425 986,1470 986" class="edge" marker-end="url(#arrow)"/><path d="M430 1503 C898 1503,1002 986,1470 986" class="edge" marker-end="url(#arrow)"/><path d="M1840 986 C1885 986,1895 1597,1940 1597" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C1368 1033,1472 1597,1940 1597" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C475 1691,485 939,530 939" class="edge" marker-end="url(#arrow)"/><path d="M430 657 C475 657,485 939,530 939" class="edge" marker-end="url(#arrow)"/><path d="M900 939 C945 939,955 939,1000 939" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C945 1033,955 939,1000 939" class="edge" marker-end="url(#arrow)"/><path d="M1370 939 C1415 939,1425 892,1470 892" class="edge" marker-end="url(#arrow)"/><path d="M900 1221 C1156.5 1221,1213.5 892,1470 892" class="edge" marker-end="url(#arrow)"/><path d="M1840 892 C1885 892,1895 1409,1940 1409" class="edge" marker-end="url(#arrow)"/><path d="M430 1597 C1109.5 1597,1260.5 1409,1940 1409" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C475 1691,485 1127,530 1127" class="edge" marker-end="url(#arrow)"/><path d="M430 939 C475 939,485 1127,530 1127" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C945 1127,955 845,1000 845" class="edge" marker-end="url(#arrow)"/><path d="M430 469 C686.5 469,743.5 845,1000 845" class="edge" marker-end="url(#arrow)"/><path d="M1370 845 C1626.5 845,1683.5 469,1940 469" class="edge" marker-end="url(#arrow)"/><path d="M430 1879 C1109.5 1879,1260.5 469,1940 469" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C945 1127,955 1315,1000 1315" class="edge" marker-end="url(#arrow)"/><path d="M430 1315 C686.5 1315,743.5 1315,1000 1315" class="edge" marker-end="url(#arrow)"/><path d="M1370 1315 C1626.5 1315,1683.5 1221,1940 1221" class="edge" marker-end="url(#arrow)"/><path d="M430 1879 C1109.5 1879,1260.5 1221,1940 1221" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C475 1691,485 1315,530 1315" class="edge" marker-end="url(#arrow)"/><path d="M430 1221 C475 1221,485 1315,530 1315" class="edge" marker-end="url(#arrow)"/><path d="M900 1315 C1368 1315,1472 1127,1940 1127" class="edge" marker-end="url(#arrow)"/><path d="M430 375 C1109.5 375,1260.5 1127,1940 1127" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C475 1691,485 845,530 845" class="edge" marker-end="url(#arrow)"/><path d="M430 563 C475 563,485 845,530 845" class="edge" marker-end="url(#arrow)"/><path d="M900 845 C1368 845,1472 563,1940 563" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C1368 1033,1472 563,1940 563" class="edge" marker-end="url(#arrow)"/><path d="M430 1691 C475 1691,485 1409,530 1409" class="edge" marker-end="url(#arrow)"/><path d="M430 1503 C475 1503,485 1409,530 1409" class="edge" marker-end="url(#arrow)"/><path d="M900 1409 C1368 1409,1472 1315,1940 1315" class="edge" marker-end="url(#arrow)"/><path d="M900 1033 C1368 1033,1472 1315,1940 1315" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C945 1127,955 1409,1000 1409" class="edge" marker-end="url(#arrow)"/><path d="M430 1785 C686.5 1785,743.5 1409,1000 1409" class="edge" marker-end="url(#arrow)"/><path d="M1370 1409 C1626.5 1409,1683.5 1785,1940 1785" class="edge" marker-end="url(#arrow)"/><path d="M430 1409 C1109.5 1409,1260.5 1785,1940 1785" class="edge" marker-end="url(#arrow)"/><path d="M900 1127 C945 1127,955 1221,1000 1221" class="edge" marker-end="url(#arrow)"/><path d="M430 1033 C686.5 1033,743.5 1221,1000 1221" class="edge" marker-end="url(#arrow)"/><path d="M1370 1221 C1415 1221,1425 1362,1470 1362" class="edge" marker-end="url(#arrow)"/><path d="M430 1785 C898 1785,1002 1362,1470 1362" class="edge" marker-end="url(#arrow)"/><path d="M1840 1362 C1885 1362,1895 751,1940 751" class="edge" marker-end="url(#arrow)"/><path d="M430 751 C1109.5 751,1260.5 751,1940 751" class="edge" marker-end="url(#arrow)"/><path d="M2310 1033 C2345 1033,1435 1080,1470 1080" class="edge" marker-end="url(#arrow)"/><path d="M430 1503 C898 1503,1002 1080,1470 1080" class="edge" marker-end="url(#arrow)"/><path d="M430 845 C475 845,485 1221,530 1221" class="edge" marker-end="url(#arrow)"/><text x="480" y="1027" class="edge-label">에스프레소 머신</text><path d="M430 1127 C475 1127,485 1033,530 1033" class="edge" marker-end="url(#arrow)"/><text x="480" y="1074" class="edge-label">스팀</text><path d="M1840 1080 C1885 1080,1895 1691,1940 1691" class="edge" marker-end="url(#arrow)"/><text x="1890" y="1379.5" class="edge-label">블렌더</text><g transform="translate(60 346)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">뜨거운 물</text>
+    </g><g transform="translate(60 440)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">레몬청</text>
+    </g><g transform="translate(60 534)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">말차 파우더</text>
+    </g><g transform="translate(60 628)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">바닐라 시럽</text>
+    </g><g transform="translate(60 722)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">바닐라빈</text>
+    </g><g transform="translate(60 816)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">분쇄 원두</text>
+    </g><g transform="translate(60 910)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">얼음</text>
+    </g><g transform="translate(60 1004)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">오트밀크</text>
+    </g><g transform="translate(60 1098)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">우유</text>
+    </g><g transform="translate(60 1192)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">유자청</text>
+    </g><g transform="translate(60 1286)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">자몽청</text>
+    </g><g transform="translate(60 1380)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">차가운 물</text>
+    </g><g transform="translate(60 1474)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">초콜릿 소스</text>
+    </g><g transform="translate(60 1568)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">카라멜 소스</text>
+    </g><g transform="translate(60 1662)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">컵</text>
+    </g><g transform="translate(60 1756)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">콜드브루 원액</text>
+    </g><g transform="translate(60 1850)">
+      <rect width="370" height="58" rx="14" class="node source"/>
+      <text x="18" y="36" class="node-label">탄산수</text>
+    </g><g transform="translate(530 816)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">말차 베이스</text>
+    </g><g transform="translate(530 910)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">바닐라 컵</text>
+    </g><g transform="translate(530 1004)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">스팀 밀크</text>
+    </g><g transform="translate(530 1098)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">얼음 컵</text>
+    </g><g transform="translate(530 1192)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">에스프레소</text>
+    </g><g transform="translate(530 1286)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">유자 베이스</text>
+    </g><g transform="translate(530 1380)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">초콜릿 베이스</text>
+    </g><g transform="translate(1000 816)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">레몬 베이스</text>
+    </g><g transform="translate(1000 910)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">바닐라 밀크</text>
+    </g><g transform="translate(1000 1004)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">아이스 밀크</text>
+    </g><g transform="translate(1000 1098)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">에스프레소 컵</text>
+    </g><g transform="translate(1000 1192)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">오트 베이스</text>
+    </g><g transform="translate(1000 1286)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">자몽 베이스</text>
+    </g><g transform="translate(1000 1380)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">콜드브루 베이스</text>
+    </g><g transform="translate(1470 863)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">마키아토 베이스</text>
+    </g><g transform="translate(1470 957)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">모카 베이스</text>
+    </g><g transform="translate(1470 1051)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">모카 블렌딩 베이스</text>
+    </g><g transform="translate(1470 1145)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">바닐라 에스프레소</text>
+    </g><g transform="translate(1470 1239)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">아이스 에스프레소</text>
+    </g><g transform="translate(1470 1333)">
+      <rect width="370" height="58" rx="14" class="node middle"/>
+      <text x="18" y="36" class="node-label">오트 콜드브루</text>
+    </g><g transform="translate(1940 440)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">레몬에이드</text>
+    </g><g transform="translate(1940 534)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">말차라떼</text>
+    </g><g transform="translate(1940 628)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">바닐라 라떼</text>
+    </g><g transform="translate(1940 722)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">바닐라빈 오트 콜드브루</text>
+    </g><g transform="translate(1940 816)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">아메리카노</text>
+    </g><g transform="translate(1940 910)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">아이스 아메리카노</text>
+    </g><g transform="translate(1940 1004)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">아이스 카페라떼</text>
+    </g><g transform="translate(1940 1098)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">유자차</text>
+    </g><g transform="translate(1940 1192)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">자몽에이드</text>
+    </g><g transform="translate(1940 1286)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">초콜릿 라떼</text>
+    </g><g transform="translate(1940 1380)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">카라멜 마키아토</text>
+    </g><g transform="translate(1940 1474)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">카페라떼</text>
+    </g><g transform="translate(1940 1568)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">카페모카</text>
+    </g><g transform="translate(1940 1662)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">카페모카 아이스 블렌디드</text>
+    </g><g transform="translate(1940 1756)">
+      <rect width="370" height="58" rx="14" class="node final"/>
+      <text x="18" y="36" class="node-label">콜드브루</text>
+    </g>
+</svg>

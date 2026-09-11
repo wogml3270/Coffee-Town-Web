@@ -1,0 +1,253 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1654" viewBox="0 0 1800 1654">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff4da"/><stop offset="1" stop-color="#d9bd8d"/></linearGradient></defs>
+  <rect width="100%" height="100%" fill="url(#bg)"/>
+  <style>
+    text { font-family: "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; fill: #3b2b20; }
+    .title { font-size: 44px; font-weight: 900; letter-spacing: 2px; }
+    .subtitle { font-size: 18px; font-weight: 700; fill: #80674d; }
+    .section { font-size: 28px; font-weight: 900; }
+    .name { font-size: 19px; font-weight: 900; }
+    .recipe { font-size: 15px; font-weight: 600; fill: #715f4f; }
+    .price { font-size: 17px; font-weight: 900; fill: #9b652f; }
+    .number { font-size: 14px; font-weight: 900; fill: white; }
+  </style>
+  <text x="70" y="68" class="title">COFFEE TOWN · 전체 제조법</text>
+  <text x="70" y="102" class="subtitle">개발 테스트용 레시피 치트 시트 · 중간 조합과 완성 음료</text>
+  
+  <text x="70" y="160" class="section">중간 조합</text>
+  <g transform="translate(70 194)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">1</text>
+        <text x="62" y="26" class="name">에스프레소 컵</text>
+        <text x="62" y="48" class="recipe">에스프레소 + 컵</text>
+        
+      </g><g transform="translate(70 272)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">2</text>
+        <text x="62" y="26" class="name">아이스 에스프레소</text>
+        <text x="62" y="48" class="recipe">에스프레소 컵 + 얼음 또는 얼음 컵 + 에스프레소</text>
+        
+      </g><g transform="translate(70 350)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">3</text>
+        <text x="62" y="26" class="name">아이스 밀크</text>
+        <text x="62" y="48" class="recipe">얼음 컵 + 우유</text>
+        
+      </g><g transform="translate(70 428)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">4</text>
+        <text x="62" y="26" class="name">바닐라 에스프레소</text>
+        <text x="62" y="48" class="recipe">에스프레소 컵 + 바닐라 시럽</text>
+        
+      </g><g transform="translate(70 506)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">5</text>
+        <text x="62" y="26" class="name">모카 베이스</text>
+        <text x="62" y="48" class="recipe">에스프레소 컵 + 초콜릿 소스</text>
+        
+      </g><g transform="translate(70 584)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">6</text>
+        <text x="62" y="26" class="name">바닐라 컵</text>
+        <text x="62" y="48" class="recipe">컵 + 바닐라 시럽</text>
+        
+      </g><g transform="translate(70 662)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">7</text>
+        <text x="62" y="26" class="name">바닐라 밀크</text>
+        <text x="62" y="48" class="recipe">바닐라 컵 + 스팀 밀크</text>
+        
+      </g><g transform="translate(70 740)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">8</text>
+        <text x="62" y="26" class="name">마키아토 베이스</text>
+        <text x="62" y="48" class="recipe">바닐라 밀크 + 에스프레소</text>
+        
+      </g><g transform="translate(70 818)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">9</text>
+        <text x="62" y="26" class="name">얼음 컵</text>
+        <text x="62" y="48" class="recipe">컵 + 얼음</text>
+        
+      </g><g transform="translate(70 896)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">10</text>
+        <text x="62" y="26" class="name">레몬 베이스</text>
+        <text x="62" y="48" class="recipe">얼음 컵 + 레몬청</text>
+        
+      </g><g transform="translate(70 974)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">11</text>
+        <text x="62" y="26" class="name">자몽 베이스</text>
+        <text x="62" y="48" class="recipe">얼음 컵 + 자몽청</text>
+        
+      </g><g transform="translate(70 1052)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">12</text>
+        <text x="62" y="26" class="name">유자 베이스</text>
+        <text x="62" y="48" class="recipe">컵 + 유자청</text>
+        
+      </g><g transform="translate(70 1130)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">13</text>
+        <text x="62" y="26" class="name">말차 베이스</text>
+        <text x="62" y="48" class="recipe">컵 + 말차 파우더</text>
+        
+      </g><g transform="translate(70 1208)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">14</text>
+        <text x="62" y="26" class="name">초콜릿 베이스</text>
+        <text x="62" y="48" class="recipe">컵 + 초콜릿 소스</text>
+        
+      </g><g transform="translate(70 1286)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">15</text>
+        <text x="62" y="26" class="name">콜드브루 베이스</text>
+        <text x="62" y="48" class="recipe">얼음 컵 + 콜드브루 원액</text>
+        
+      </g><g transform="translate(70 1364)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">16</text>
+        <text x="62" y="26" class="name">오트 베이스</text>
+        <text x="62" y="48" class="recipe">얼음 컵 + 오트밀크</text>
+        
+      </g><g transform="translate(70 1442)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">17</text>
+        <text x="62" y="26" class="name">오트 콜드브루</text>
+        <text x="62" y="48" class="recipe">오트 베이스 + 콜드브루 원액</text>
+        
+      </g><g transform="translate(70 1520)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#6f8c78" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#6f8c78"/>
+        <text x="32" y="38" class="number" text-anchor="middle">18</text>
+        <text x="62" y="26" class="name">모카 블렌딩 베이스</text>
+        <text x="62" y="48" class="recipe">아이스 카페라떼 + 초콜릿 소스</text>
+        
+      </g>
+  
+  <text x="910" y="160" class="section">완성 음료</text>
+  <g transform="translate(910 194)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">1</text>
+        <text x="62" y="26" class="name">아메리카노</text>
+        <text x="62" y="48" class="recipe">에스프레소 컵 + 뜨거운 물</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,000원</text>
+      </g><g transform="translate(910 272)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">2</text>
+        <text x="62" y="26" class="name">아이스 아메리카노</text>
+        <text x="62" y="48" class="recipe">아이스 에스프레소 + 차가운 물</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,300원</text>
+      </g><g transform="translate(910 350)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">3</text>
+        <text x="62" y="26" class="name">아이스 카페라떼</text>
+        <text x="62" y="48" class="recipe">아이스 에스프레소 + 우유 또는 아이스 밀크 + 에스프레소</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,800원</text>
+      </g><g transform="translate(910 428)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">4</text>
+        <text x="62" y="26" class="name">카페라떼</text>
+        <text x="62" y="48" class="recipe">에스프레소 컵 + 스팀 밀크</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,500원</text>
+      </g><g transform="translate(910 506)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">5</text>
+        <text x="62" y="26" class="name">바닐라 라떼</text>
+        <text x="62" y="48" class="recipe">바닐라 에스프레소 + 스팀 밀크</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,000원</text>
+      </g><g transform="translate(910 584)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">6</text>
+        <text x="62" y="26" class="name">카페모카</text>
+        <text x="62" y="48" class="recipe">모카 베이스 + 스팀 밀크</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,200원</text>
+      </g><g transform="translate(910 662)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">7</text>
+        <text x="62" y="26" class="name">카라멜 마키아토</text>
+        <text x="62" y="48" class="recipe">마키아토 베이스 + 카라멜 소스</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,200원</text>
+      </g><g transform="translate(910 740)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">8</text>
+        <text x="62" y="26" class="name">레몬에이드</text>
+        <text x="62" y="48" class="recipe">레몬 베이스 + 탄산수</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,000원</text>
+      </g><g transform="translate(910 818)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">9</text>
+        <text x="62" y="26" class="name">자몽에이드</text>
+        <text x="62" y="48" class="recipe">자몽 베이스 + 탄산수</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,500원</text>
+      </g><g transform="translate(910 896)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">10</text>
+        <text x="62" y="26" class="name">유자차</text>
+        <text x="62" y="48" class="recipe">유자 베이스 + 뜨거운 물</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,800원</text>
+      </g><g transform="translate(910 974)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">11</text>
+        <text x="62" y="26" class="name">말차라떼</text>
+        <text x="62" y="48" class="recipe">말차 베이스 + 스팀 밀크</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,200원</text>
+      </g><g transform="translate(910 1052)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">12</text>
+        <text x="62" y="26" class="name">초콜릿 라떼</text>
+        <text x="62" y="48" class="recipe">초콜릿 베이스 + 스팀 밀크</text>
+        <text x="795" y="38" class="price" text-anchor="end">5,200원</text>
+      </g><g transform="translate(910 1130)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">13</text>
+        <text x="62" y="26" class="name">콜드브루</text>
+        <text x="62" y="48" class="recipe">콜드브루 베이스 + 차가운 물</text>
+        <text x="795" y="38" class="price" text-anchor="end">4,800원</text>
+      </g><g transform="translate(910 1208)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">14</text>
+        <text x="62" y="26" class="name">바닐라빈 오트 콜드브루</text>
+        <text x="62" y="48" class="recipe">오트 콜드브루 + 바닐라빈</text>
+        <text x="795" y="38" class="price" text-anchor="end">6,000원</text>
+      </g><g transform="translate(910 1286)">
+        <rect width="820" height="64" rx="14" fill="#fffaf0" stroke="#b77849" stroke-width="2"/>
+        <circle cx="32" cy="32" r="18" fill="#b77849"/>
+        <text x="32" y="38" class="number" text-anchor="middle">15</text>
+        <text x="62" y="26" class="name">카페모카 아이스 블렌디드</text>
+        <text x="62" y="48" class="recipe">아이스 카페라떼 + 초콜릿 소스 → 블렌더로 블렌딩</text>
+        <text x="795" y="38" class="price" text-anchor="end">6,500원</text>
+      </g>
+</svg>

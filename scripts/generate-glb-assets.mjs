@@ -260,21 +260,47 @@ const coldBrewTower = () => {
   return g;
 };
 const blender = () => {
-  const g = groupNamed("CafeBlender");
-  box(g, [0.82, 0.38, 0.72], [0, 0.2, 0], "#263735", "MotorBase", 0.5);
-  const jar = box(g, [0.62, 0.9, 0.58], [0, 0.83, 0], "#9bc5c5", "BlenderJar", 0.15);
-  jar.material.transparent = true;
-  jar.material.opacity = 0.35;
-  jar.material.depthWrite = false;
-  cylinder(g, [0.28, 0.34, 0.12, 20], [0, 1.35, 0], "#2c3532", "Lid", [0, 0, 0], 0.45);
-  cylinder(g, [0.24, 0.24, 0.08, 16], [0, 0.48, 0], "#d6b05e", "Blade", [0, 0, 0], 0.7);
-  [0, 0.2, -0.2].forEach((x) =>
-    cylinder(g, [0.045, 0.045, 0.04, 12], [x, 0.2, 0.38], x === 0 ? "#6ee08b" : "#e2b657", "Button", [
-      Math.PI / 2,
-      0,
-      0,
-    ]),
+  const g = groupNamed("CommercialCafeBlender");
+  box(g, [0.98, 0.1, 0.82], [0, 0.05, 0], "#171d1c", "RubberFootPlate", 0.28);
+  box(g, [0.9, 0.48, 0.76], [0, 0.31, 0], "#34423f", "CommercialMotorBase", 0.62);
+  box(g, [0.72, 0.25, 0.06], [0, 0.33, 0.4], "#15201f", "DigitalControlPanel", 0.48);
+  box(g, [0.25, 0.09, 0.025], [-0.17, 0.36, 0.44], "#8de2a0", "SpeedDisplay", 0.22);
+  [-0.25, 0, 0.25].forEach((x, index) =>
+    cylinder(
+      g,
+      [0.065, 0.065, 0.035, 18],
+      [x, 0.23, 0.43],
+      index === 1 ? "#e7b653" : "#d9e3db",
+      index === 1 ? "PulseButton" : "SpeedButton",
+      [Math.PI / 2, 0, 0],
+      0.42,
+    ),
   );
+  const jar = box(g, [0.65, 0.98, 0.6], [0, 1.04, 0], "#a8d1cf", "GraduatedBlenderJar", 0.18);
+  jar.material.transparent = true;
+  jar.material.opacity = 0.28;
+  jar.material.depthWrite = false;
+  const liquid = box(g, [0.54, 0.52, 0.5], [0, 0.83, 0], "#8c5b42", "BlendContents", 0.08);
+  liquid.material.transparent = true;
+  liquid.material.opacity = 0.78;
+  [0.72, 0.91, 1.1, 1.29].forEach((y, index) =>
+    box(g, [0.15 + index * 0.035, 0.018, 0.025], [0.34, y, 0.31], "#f4f0df", "VolumeMark"),
+  );
+  box(g, [0.12, 0.7, 0.15], [0.42, 1.05, 0], "#293431", "JarHandle", 0.4);
+  box(g, [0.18, 0.18, 0.22], [0.47, 1.35, 0], "#293431", "HandleGrip", 0.4);
+  cylinder(g, [0.34, 0.37, 0.13, 24], [0, 1.59, 0], "#242c2a", "SealedLid", [0, 0, 0], 0.5);
+  cylinder(g, [0.1, 0.1, 0.1, 18], [0, 1.71, 0], "#c69a53", "LidCap", [0, 0, 0], 0.58);
+  cylinder(g, [0.27, 0.27, 0.055, 20], [0, 0.54, 0], "#d1aa60", "FourPointBlade", [0, 0, 0], 0.82);
+  const hood = box(g, [0.9, 1.46, 0.06], [0, 1.03, -0.37], "#a9c4c0", "AcousticHoodBack", 0.14);
+  hood.material.transparent = true;
+  hood.material.opacity = 0.2;
+  hood.material.depthWrite = false;
+  [-0.43, 0.43].forEach((x) => {
+    const side = box(g, [0.055, 1.46, 0.72], [x, 1.03, 0], "#a9c4c0", "AcousticHoodSide", 0.14);
+    side.material.transparent = true;
+    side.material.opacity = 0.18;
+    side.material.depthWrite = false;
+  });
   return g;
 };
 const syrupDispenser = (name, color, accent) => {
@@ -522,7 +548,7 @@ const customerPalettes = [
 customerPalettes.forEach((palette, index) => {
   assets[`customer-${String(index + 1).padStart(2, "0")}.glb`] = character(`Customer${index + 1}`, palette);
 });
-for (let stage = 1; stage <= 12; stage += 1) {
+for (let stage = 1; stage <= 15; stage += 1) {
   assets[`cafe-shell-stage-${String(stage).padStart(2, "0")}.glb`] = cafeShell(
     shellPalettes[(stage - 1) % shellPalettes.length],
   );

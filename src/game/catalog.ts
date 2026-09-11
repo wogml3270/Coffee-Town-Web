@@ -14,6 +14,9 @@ export const drinkIds = [
   "cold_brew",
   "vanilla_oat_cold_brew",
   "mocha_blended",
+  "vanilla_blended",
+  "matcha_blended",
+  "chocolate_blended",
 ] as const;
 export type DrinkId = (typeof drinkIds)[number];
 export type ItemId =
@@ -53,9 +56,6 @@ export type ItemId =
   | "cold_brew_base"
   | "oat_cup"
   | "oat_cold_brew_base"
-  | "blended_base_1"
-  | "blended_base_2"
-  | "blended_base_3"
   | DrinkId;
 export type StationId =
   | "grinder"
@@ -70,6 +70,67 @@ export type StationId =
   | "coldBrew"
   | "blender"
   | "serve";
+export const stationUnlockStage: Readonly<Record<StationId, number>> = {
+  grinder: 1,
+  espresso: 1,
+  cups: 1,
+  water: 1,
+  coldWater: 1,
+  fridge: 1,
+  steam: 1,
+  ice: 1,
+  sparkling: 5,
+  coldBrew: 10,
+  blender: 12,
+  serve: 1,
+};
+export type StationProcess = Readonly<{
+  station: StationId;
+  output: ItemId;
+  seconds: number;
+  input?: ItemId;
+  additionalInputs?: readonly ItemId[];
+  instant?: boolean;
+}>;
+export const stationProcesses: readonly StationProcess[] = [
+  { station: "grinder", output: "ground_coffee", seconds: 4 },
+  { station: "cups", output: "cup", seconds: 0, instant: true },
+  { station: "water", output: "hot_water", seconds: 3 },
+  { station: "coldWater", output: "cold_water", seconds: 2 },
+  { station: "ice", output: "ice", seconds: 4 },
+  { station: "sparkling", output: "sparkling_water", seconds: 3 },
+  { station: "coldBrew", output: "cold_brew_concentrate", seconds: 5 },
+  { station: "espresso", input: "ground_coffee", output: "espresso", seconds: 7 },
+  { station: "steam", input: "milk", output: "steamed_milk", seconds: 6 },
+  {
+    station: "blender",
+    input: "mocha_base",
+    additionalInputs: ["milk", "ice"],
+    output: "mocha_blended",
+    seconds: 7,
+  },
+  {
+    station: "blender",
+    input: "vanilla_cup",
+    additionalInputs: ["milk", "ice"],
+    output: "vanilla_blended",
+    seconds: 7,
+  },
+  {
+    station: "blender",
+    input: "matcha_cup",
+    additionalInputs: ["milk", "ice"],
+    output: "matcha_blended",
+    seconds: 8,
+  },
+  {
+    station: "blender",
+    input: "chocolate_cup",
+    additionalInputs: ["milk", "ice"],
+    output: "chocolate_blended",
+    seconds: 8,
+  },
+];
 export type InventoryItem = Readonly<{ uid: string; itemId: ItemId }>;
 export type Order = Readonly<{ id: number; itemId: DrinkId; name: string; reward: number }>;
 export type CombinationRecipe = Readonly<{ inputs: readonly [ItemId, ItemId]; output: ItemId }>;
@@ -103,7 +164,7 @@ export const labels: Readonly<Record<ItemId, string>> = {
   iced_milk_base: "아이스 밀크",
   vanilla_espresso: "바닐라 에스프레소",
   mocha_base: "모카 베이스",
-  vanilla_cup: "바닐라 컵",
+  vanilla_cup: "바닐라 베이스",
   vanilla_milk_cup: "바닐라 밀크",
   caramel_base: "마키아토 베이스",
   matcha_cup: "말차 베이스",
@@ -111,9 +172,6 @@ export const labels: Readonly<Record<ItemId, string>> = {
   cold_brew_base: "콜드브루 베이스",
   oat_cup: "오트 베이스",
   oat_cold_brew_base: "오트 콜드브루",
-  blended_base_1: "블렌디드 밀크",
-  blended_base_2: "블렌디드 커피",
-  blended_base_3: "블렌더 투입물",
   americano: "아메리카노",
   iced_americano: "아이스 아메리카노",
   latte: "카페라떼",
@@ -129,6 +187,9 @@ export const labels: Readonly<Record<ItemId, string>> = {
   cold_brew: "콜드브루",
   vanilla_oat_cold_brew: "바닐라빈 오트 콜드브루",
   mocha_blended: "카페모카 아이스 블렌디드",
+  vanilla_blended: "바닐라 아이스 블렌디드",
+  matcha_blended: "말차 아이스 블렌디드",
+  chocolate_blended: "초콜릿 아이스 블렌디드",
 };
 export const stationLabels: Readonly<Record<StationId, string>> = {
   grinder: "그라인더",
@@ -238,7 +299,28 @@ export const menuCatalog: readonly MenuDefinition[] = [
     name: "카페모카 아이스 블렌디드",
     stage: 12,
     reward: 6500,
-    recipe: "얼음 컵 + 우유 + 에스프레소 + 초콜릿을 블렌딩",
+    recipe: "모카 베이스 + 우유 + 얼음 → 블렌더로 블렌딩",
+  },
+  {
+    id: "vanilla_blended",
+    name: "바닐라 아이스 블렌디드",
+    stage: 13,
+    reward: 6500,
+    recipe: "바닐라 베이스 + 우유 + 얼음 → 블렌더로 블렌딩",
+  },
+  {
+    id: "matcha_blended",
+    name: "말차 아이스 블렌디드",
+    stage: 14,
+    reward: 6800,
+    recipe: "말차 베이스 + 우유 + 얼음 → 블렌더로 블렌딩",
+  },
+  {
+    id: "chocolate_blended",
+    name: "초콜릿 아이스 블렌디드",
+    stage: 15,
+    reward: 6800,
+    recipe: "초콜릿 베이스 + 우유 + 얼음 → 블렌더로 블렌딩",
   },
 ];
 export type StageDefinition = Readonly<{
@@ -260,37 +342,242 @@ export const stages: readonly StageDefinition[] = Array.from(
   },
 );
 
-export const recipes: readonly CombinationRecipe[] = [
-  { inputs: ["espresso", "cup"], output: "espresso_cup" },
-  { inputs: ["espresso_cup", "hot_water"], output: "americano" },
-  { inputs: ["iced_cup", "espresso"], output: "iced_espresso_base" },
-  { inputs: ["iced_espresso_base", "cold_water"], output: "iced_americano" },
-  { inputs: ["espresso_cup", "steamed_milk"], output: "latte" },
-  { inputs: ["iced_cup", "milk"], output: "iced_milk_base" },
-  { inputs: ["iced_milk_base", "espresso"], output: "iced_latte" },
-  { inputs: ["espresso_cup", "vanilla_syrup"], output: "vanilla_espresso" },
-  { inputs: ["vanilla_espresso", "steamed_milk"], output: "vanilla_latte" },
-  { inputs: ["espresso_cup", "chocolate_sauce"], output: "mocha_base" },
-  { inputs: ["mocha_base", "steamed_milk"], output: "mocha" },
-  { inputs: ["cup", "vanilla_syrup"], output: "vanilla_cup" },
-  { inputs: ["vanilla_cup", "steamed_milk"], output: "vanilla_milk_cup" },
-  { inputs: ["vanilla_milk_cup", "espresso"], output: "caramel_base" },
-  { inputs: ["caramel_base", "caramel_sauce"], output: "caramel_macchiato" },
-  { inputs: ["cup", "ice"], output: "iced_cup" },
-  { inputs: ["iced_cup", "lemon_syrup"], output: "lemon_base" },
-  { inputs: ["lemon_base", "sparkling_water"], output: "lemonade" },
-  { inputs: ["iced_cup", "grapefruit_syrup"], output: "grapefruit_base" },
-  { inputs: ["grapefruit_base", "sparkling_water"], output: "grapefruitade" },
-  { inputs: ["cup", "yuzu_syrup"], output: "yuzu_base" },
-  { inputs: ["yuzu_base", "hot_water"], output: "yuzu_tea" },
-  { inputs: ["cup", "matcha_powder"], output: "matcha_cup" },
-  { inputs: ["matcha_cup", "steamed_milk"], output: "matcha_latte" },
-  { inputs: ["cup", "chocolate_sauce"], output: "chocolate_cup" },
-  { inputs: ["chocolate_cup", "steamed_milk"], output: "chocolate_latte" },
-  { inputs: ["iced_cup", "cold_brew_concentrate"], output: "cold_brew_base" },
-  { inputs: ["cold_brew_base", "cold_water"], output: "cold_brew" },
-  { inputs: ["iced_cup", "oat_milk"], output: "oat_cup" },
-  { inputs: ["oat_cup", "cold_brew_concentrate"], output: "oat_cold_brew_base" },
-  { inputs: ["oat_cold_brew_base", "vanilla_bean"], output: "vanilla_oat_cold_brew" },
-  { inputs: ["iced_latte", "chocolate_sauce"], output: "blended_base_3" },
+// 조합을 수정할 때는 이 그룹만 편집하면 됩니다.
+// 같은 input 조합이 DB에도 있으면 이 코드의 결과가 우선 적용됩니다.
+export const recipeGroups = {
+  cupBases: [
+    { inputs: ["espresso", "cup"], output: "espresso_cup" },
+    { inputs: ["cup", "ice"], output: "iced_cup" },
+    { inputs: ["iced_cup", "milk"], output: "iced_milk_base" },
+  ],
+  coffee: [
+    { inputs: ["espresso_cup", "hot_water"], output: "americano" },
+    { inputs: ["espresso_cup", "ice"], output: "iced_espresso_base" },
+    { inputs: ["iced_cup", "espresso"], output: "iced_espresso_base" },
+    { inputs: ["iced_espresso_base", "cold_water"], output: "iced_americano" },
+    { inputs: ["iced_espresso_base", "milk"], output: "iced_latte" },
+    { inputs: ["iced_milk_base", "espresso"], output: "iced_latte" },
+    { inputs: ["espresso_cup", "steamed_milk"], output: "latte" },
+  ],
+  flavoredCoffee: [
+    { inputs: ["espresso_cup", "vanilla_syrup"], output: "vanilla_espresso" },
+    { inputs: ["vanilla_espresso", "steamed_milk"], output: "vanilla_latte" },
+    { inputs: ["espresso_cup", "chocolate_sauce"], output: "mocha_base" },
+    { inputs: ["mocha_base", "steamed_milk"], output: "mocha" },
+    { inputs: ["cup", "vanilla_syrup"], output: "vanilla_cup" },
+    { inputs: ["vanilla_cup", "steamed_milk"], output: "vanilla_milk_cup" },
+    { inputs: ["vanilla_milk_cup", "espresso"], output: "caramel_base" },
+    { inputs: ["caramel_base", "caramel_sauce"], output: "caramel_macchiato" },
+  ],
+  nonCoffee: [
+    { inputs: ["iced_cup", "lemon_syrup"], output: "lemon_base" },
+    { inputs: ["lemon_base", "sparkling_water"], output: "lemonade" },
+    { inputs: ["iced_cup", "grapefruit_syrup"], output: "grapefruit_base" },
+    { inputs: ["grapefruit_base", "sparkling_water"], output: "grapefruitade" },
+    { inputs: ["cup", "yuzu_syrup"], output: "yuzu_base" },
+    { inputs: ["yuzu_base", "hot_water"], output: "yuzu_tea" },
+    { inputs: ["cup", "matcha_powder"], output: "matcha_cup" },
+    { inputs: ["matcha_cup", "steamed_milk"], output: "matcha_latte" },
+    { inputs: ["cup", "chocolate_sauce"], output: "chocolate_cup" },
+    { inputs: ["chocolate_cup", "steamed_milk"], output: "chocolate_latte" },
+  ],
+  coldBrew: [
+    { inputs: ["iced_cup", "cold_brew_concentrate"], output: "cold_brew_base" },
+    { inputs: ["cold_brew_base", "cold_water"], output: "cold_brew" },
+    { inputs: ["iced_cup", "oat_milk"], output: "oat_cup" },
+    { inputs: ["oat_cup", "cold_brew_concentrate"], output: "oat_cold_brew_base" },
+    { inputs: ["oat_cold_brew_base", "vanilla_bean"], output: "vanilla_oat_cold_brew" },
+  ],
+} as const satisfies Readonly<Record<string, readonly CombinationRecipe[]>>;
+
+export const recipes: readonly CombinationRecipe[] = Object.values(recipeGroups).flat();
+
+export type RecipeArchiveEntry = Readonly<{
+  id: ItemId;
+  name: string;
+  stage: number;
+  recipe: string;
+  price?: number;
+  category: "source" | "intermediate" | "final";
+  tier: RecipeTier;
+}>;
+
+export type RecipeTier = 1 | 2 | 3 | 4 | 5;
+export const recipeTierMeta = {
+  1: { name: "기본 재료", color: "#668a62" },
+  2: { name: "1차 가공", color: "#4f8d9b" },
+  3: { name: "중간 베이스", color: "#9a6fb0" },
+  4: { name: "일반 완성 음료", color: "#c77b45" },
+  5: { name: "시그니처·블렌디드", color: "#c09a35" },
+} as const satisfies Readonly<Record<RecipeTier, Readonly<{ name: string; color: string }>>>;
+
+export const recipeTierGroups = {
+  1: [
+    "ground_coffee",
+    "cup",
+    "hot_water",
+    "cold_water",
+    "milk",
+    "oat_milk",
+    "ice",
+    "sparkling_water",
+    "lemon_syrup",
+    "grapefruit_syrup",
+    "yuzu_syrup",
+    "vanilla_syrup",
+    "vanilla_bean",
+    "chocolate_sauce",
+    "caramel_sauce",
+    "matcha_powder",
+  ],
+  2: [
+    "espresso",
+    "steamed_milk",
+    "iced_cup",
+    "vanilla_cup",
+    "matcha_cup",
+    "chocolate_cup",
+    "yuzu_base",
+    "oat_cup",
+    "cold_brew_concentrate",
+  ],
+  3: [
+    "espresso_cup",
+    "iced_milk_base",
+    "iced_espresso_base",
+    "vanilla_espresso",
+    "mocha_base",
+    "vanilla_milk_cup",
+    "caramel_base",
+    "lemon_base",
+    "grapefruit_base",
+    "cold_brew_base",
+    "oat_cold_brew_base",
+  ],
+  4: [
+    "americano",
+    "iced_americano",
+    "latte",
+    "iced_latte",
+    "vanilla_latte",
+    "mocha",
+    "caramel_macchiato",
+    "lemonade",
+    "grapefruitade",
+    "yuzu_tea",
+    "matcha_latte",
+    "chocolate_latte",
+    "cold_brew",
+  ],
+  5: ["vanilla_oat_cold_brew", "mocha_blended", "vanilla_blended", "matcha_blended", "chocolate_blended"],
+} as const satisfies Readonly<Record<RecipeTier, readonly ItemId[]>>;
+
+export const recipeTierOf = (itemId: ItemId): RecipeTier => {
+  const entry = (Object.entries(recipeTierGroups) as [string, readonly ItemId[]][]).find(([, ids]) =>
+    ids.includes(itemId),
+  );
+  return entry ? (Number(entry[0]) as RecipeTier) : 1;
+};
+const recipeStages: Partial<Record<ItemId, number>> = {
+  vanilla_syrup: 2,
+  vanilla_espresso: 2,
+  chocolate_sauce: 3,
+  mocha_base: 3,
+  caramel_sauce: 4,
+  vanilla_cup: 4,
+  vanilla_milk_cup: 4,
+  caramel_base: 4,
+  sparkling_water: 5,
+  lemon_syrup: 5,
+  lemon_base: 5,
+  grapefruit_syrup: 6,
+  grapefruit_base: 6,
+  yuzu_syrup: 7,
+  yuzu_base: 7,
+  matcha_powder: 8,
+  matcha_cup: 8,
+  chocolate_cup: 9,
+  cold_brew_concentrate: 10,
+  cold_brew_base: 10,
+  oat_milk: 11,
+  vanilla_bean: 11,
+  oat_cup: 11,
+  oat_cold_brew_base: 11,
+};
+const sourceRecipes = [
+  {
+    id: "ground_coffee",
+    name: labels.ground_coffee,
+    stage: 1,
+    recipe: "그라인더에서 원두 분쇄",
+    category: "source",
+  },
+  {
+    id: "espresso",
+    name: labels.espresso,
+    stage: 1,
+    recipe: "분쇄 원두를 에스프레소 머신으로 추출",
+    category: "source",
+  },
+  { id: "cup", name: labels.cup, stage: 1, recipe: "컵 선반에서 컵 꺼내기", category: "source" },
+  { id: "hot_water", name: labels.hot_water, stage: 1, recipe: "정수기에서 온수 선택", category: "source" },
+  { id: "cold_water", name: labels.cold_water, stage: 1, recipe: "정수기에서 냉수 선택", category: "source" },
+  { id: "milk", name: labels.milk, stage: 1, recipe: "재료 냉장고에서 우유 꺼내기" },
+  { id: "steamed_milk", name: labels.steamed_milk, stage: 1, recipe: "우유를 스팀 완드로 데우기" },
+  { id: "ice", name: labels.ice, stage: 1, recipe: "제빙기에서 얼음 받기" },
+  { id: "vanilla_syrup", name: labels.vanilla_syrup, stage: 2, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "chocolate_sauce", name: labels.chocolate_sauce, stage: 3, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "caramel_sauce", name: labels.caramel_sauce, stage: 4, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "sparkling_water", name: labels.sparkling_water, stage: 5, recipe: "탄산수 머신에서 받기" },
+  { id: "lemon_syrup", name: labels.lemon_syrup, stage: 5, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "grapefruit_syrup", name: labels.grapefruit_syrup, stage: 6, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "yuzu_syrup", name: labels.yuzu_syrup, stage: 7, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "matcha_powder", name: labels.matcha_powder, stage: 8, recipe: "재료 냉장고에서 꺼내기" },
+  {
+    id: "cold_brew_concentrate",
+    name: labels.cold_brew_concentrate,
+    stage: 10,
+    recipe: "콜드브루 타워에서 추출",
+  },
+  { id: "oat_milk", name: labels.oat_milk, stage: 11, recipe: "재료 냉장고에서 꺼내기" },
+  { id: "vanilla_bean", name: labels.vanilla_bean, stage: 11, recipe: "재료 냉장고에서 꺼내기" },
+] as const satisfies readonly Readonly<{
+  id: ItemId;
+  name: string;
+  stage: number;
+  recipe: string;
+  category?: "source";
+}>[];
+export const recipeArchive: readonly RecipeArchiveEntry[] = [
+  ...sourceRecipes.map((entry) => ({
+    ...entry,
+    category: "source" as const,
+    tier: recipeTierOf(entry.id),
+  })),
+  ...[...new Set(recipes.map(({ output }) => output))].map((output) => {
+    const alternatives = recipes
+      .filter((recipe) => recipe.output === output)
+      .map(({ inputs }) => `${labels[inputs[0]]} + ${labels[inputs[1]]}`);
+    return {
+      id: output,
+      name: labels[output],
+      stage: recipeStages[output] ?? menuCatalog.find(({ id }) => id === output)?.stage ?? 1,
+      recipe:
+        alternatives.length > 1 ? alternatives.map((recipe) => `- ${recipe}`).join("\n") : alternatives[0]!,
+      price: menuCatalog.find(({ id }) => id === output)?.reward,
+      category: drinkIds.includes(output as DrinkId) ? ("final" as const) : ("intermediate" as const),
+      tier: recipeTierOf(output),
+    };
+  }),
+  ...menuCatalog
+    .filter(({ id }) => !recipes.some(({ output }) => output === id))
+    .map(({ id, name, stage, reward, recipe }) => ({
+      id,
+      name,
+      stage,
+      recipe,
+      price: reward,
+      category: "final" as const,
+      tier: recipeTierOf(id),
+    })),
 ];

@@ -1,8 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { soundPlayer } from "./audio/soundPlayer";
-import { fridgeIngredients, labels, menuCatalog, stages } from "./game/catalog";
-import { businessClock } from "./game/rules";
-import { maxUpgradeLevel, upgradeCost, useGame, type UpgradeId } from "./game/store";
+import {
+  fridgeIngredients,
+  labels,
+  menuCatalog,
+  recipeArchive,
+  recipeTierMeta,
+  recipeTierOf,
+  stages,
+  type RecipeTier,
+} from "./game/catalog";
+import { businessClock, calculateShiftScore } from "./game/rules";
+import { useGame } from "./game/store";
+import {
+  canBuyUpgrade,
+  unmetUpgradeRequirements,
+  upgradeCategories,
+  upgradeNodeById,
+  upgradeNodes,
+  type UpgradeId,
+} from "./game/upgradeTree";
 import { CafeScene } from "./scene/CafeScene";
 import {
   completeOAuthCallback,
@@ -16,6 +33,103 @@ import {
 } from "./services/authService";
 import { loadProgress, saveProgress } from "./services/progressService";
 import { loadCombinationRecipes } from "./services/recipeService";
+import { loadUpgradeCatalog, purchaseUpgrade } from "./services/upgradeService";
+import { loadLeaderboard, type RankingEntry } from "./services/rankingService";
+import { saveShiftScore } from "./services/scoreService";
+
+const stationNames = {
+  grinder: "그라인더",
+  espresso: "에스프레소 머신",
+  cups: "컵 선반",
+  water: "정수기",
+  coldWater: "정수기",
+  fridge: "재료 냉장고",
+  steam: "스팀 완드",
+  ice: "제빙기",
+  sparkling: "탄산수 머신",
+  coldBrew: "콜드브루 타워",
+  blender: "블렌더",
+  serve: "픽업 카운터",
+} as const;
+
+const UpgradeIcon = ({ id }: Readonly<{ id: UpgradeId }>) => {
+  const paths: Record<UpgradeId, ReactNode> = {
+    speed: (
+      <>
+        <path d="M7 17h18v9H7zM10 8h12l3 9H7z" />
+        <path d="M12 12h8M16 8V5" />
+      </>
+    ),
+    espressoSpeed: (
+      <>
+        <path d="M8 9h13v12a5 5 0 0 1-5 5h-3a5 5 0 0 1-5-5z" />
+        <path d="M21 12h2a4 4 0 0 1 0 8h-2M12 5v3m5-3v3" />
+      </>
+    ),
+    coldDrinkSpeed: (
+      <>
+        <path d="M10 6h12l-2 21h-8zM11 11h10" />
+        <path d="m14 15 4 4m0-4-4 4" />
+      </>
+    ),
+    movement: (
+      <>
+        <circle cx="17" cy="6" r="3" />
+        <path d="m15 11-4 7 6 3 3-7 5 4M17 21l-5 6m6-6 5 6" />
+      </>
+    ),
+    multitask: (
+      <>
+        <circle cx="16" cy="6" r="3" />
+        <path d="M16 10v9m0-5-7 4m7-4 7 4m-7 1-5 8m5-8 5 8" />
+        <path d="M5 12h5v5H5zm17 0h5v5h-5z" />
+      </>
+    ),
+    feverCharge: <path d="M18 3 8 18h7l-1 11 10-16h-7z" />,
+    feverDuration: (
+      <>
+        <circle cx="16" cy="17" r="11" />
+        <path d="M16 10v7l5 3M12 3h8" />
+      </>
+    ),
+    feverProfit: (
+      <>
+        <path d="M7 11h18v15H7zM10 11V7h12v4" />
+        <circle cx="16" cy="18" r="4" />
+        <path d="M16 16v4" />
+      </>
+    ),
+    tips: (
+      <>
+        <path d="M5 17h22v9H5zM9 17v-3c0-7 14-7 14 0v3" />
+        <path d="M13 10h6M3 26h26" />
+      </>
+    ),
+    comboGuard: (
+      <>
+        <path d="m16 4 10 4v7c0 7-4 11-10 14C10 26 6 22 6 15V8z" />
+        <path d="m11 16 3 3 7-7" />
+      </>
+    ),
+    automation: (
+      <>
+        <rect x="5" y="8" width="22" height="17" rx="3" />
+        <path d="M11 13h10M11 18h4m5 0h1M10 25v3m12-3v3M16 4v4" />
+      </>
+    ),
+    autoServe: (
+      <>
+        <path d="M5 20h22v6H5zM8 20v-3a8 8 0 0 1 16 0v3M16 9V6" />
+        <path d="m12 15 3 3 6-6" />
+      </>
+    ),
+  };
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      {paths[id]}
+    </svg>
+  );
+};
 
 const NicknameModal = ({
   profile,
@@ -161,11 +275,63 @@ const ProfileModal = ({ profile, close }: Readonly<{ profile: PlayerProfile | nu
   );
 };
 
+const LeaderboardModal = ({ close }: Readonly<{ close: () => void }>) => {
+  const [entries, setEntries] = useState<readonly RankingEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    void loadLeaderboard()
+      .then(setEntries)
+      .catch((reason) => setError(reason instanceof Error ? reason.message : "랭킹을 불러오지 못했습니다."))
+      .finally(() => setLoading(false));
+  }, []);
+  return (
+    <section className="leaderboard-modal" role="dialog" aria-modal="true" aria-label="바리스타 랭킹">
+      <button className="modal-backdrop" type="button" aria-label="랭킹 닫기" onClick={close} />
+      <div>
+        <header>
+          <div>
+            <p>COFFEE TOWN RANKING</p>
+            <h2>바리스타 랭킹</h2>
+            <span>스테이지별 최고 점수 합산 · TOP 50</span>
+          </div>
+          <button type="button" aria-label="랭킹 닫기" onClick={close}>
+            ×
+          </button>
+        </header>
+        <div className="leaderboard-list">
+          {loading ? <p className="leaderboard-state">랭킹을 불러오는 중입니다</p> : null}
+          {error ? <p className="leaderboard-state error">{error}</p> : null}
+          {!loading && !error && !entries.length ? (
+            <p className="leaderboard-state">아직 등록된 바리스타가 없습니다.</p>
+          ) : null}
+          {entries.map((entry) => (
+            <article key={`${entry.position}-${entry.nickname}`} className={entry.isMe ? "me" : ""}>
+              <strong>{entry.position}</strong>
+              <span>
+                {entry.nickname}
+                {entry.isMe ? <small>나</small> : null}
+              </span>
+              <div>
+                <b>{entry.score.toLocaleString("ko-KR")} P</b>
+                <small>{entry.stagesRanked}개 스테이지 기록</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const RecipeBook = () => {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<RecipeTier>(1);
   const screen = useGame(({ screen }) => screen);
   const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
   const discovered = useGame(({ discoveredRecipes }) => discoveredRecipes);
+  const visibleRecipes = recipeArchive.filter(({ tier }) => tier === tab);
+  const discoverableRecipes = recipeArchive;
   useEffect(() => {
     const toggleRecipeBook = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -200,25 +366,58 @@ const RecipeBook = () => {
                 <p>COFFEE TOWN ARCHIVE</p>
                 <h2>레시피 도감</h2>
                 <span>
-                  {discovered.length}/{menuCatalog.length} 발견
+                  {discoverableRecipes.filter(({ id }) => discovered.includes(id)).length}/
+                  {discoverableRecipes.length} 발견
                 </span>
               </div>
               <button type="button" onClick={() => setOpen(false)}>
                 ×
               </button>
             </header>
+            <nav className="recipe-tabs recipe-tier-tabs" aria-label="제조 단계">
+              {(Object.entries(recipeTierMeta) as [string, (typeof recipeTierMeta)[RecipeTier]][]).map(
+                ([tier, meta]) => {
+                  const tierNumber = Number(tier) as RecipeTier;
+                  return (
+                    <button
+                      className={tab === tierNumber ? "active" : ""}
+                      type="button"
+                      key={tier}
+                      style={{ "--tier-color": meta.color } as CSSProperties}
+                      onClick={() => setTab(tierNumber)}
+                    >
+                      <b>{tier}단계</b>
+                      <small>{meta.name}</small>
+                    </button>
+                  );
+                },
+              )}
+            </nav>
+            {tab === 5 ? (
+              <section className="blender-guide">
+                <strong>BLENDER</strong>
+                <span>맛 베이스를 선택하고, 우유와 얼음을 작업대에 준비한 뒤 블렌더를 사용하세요.</span>
+                <small>모카 · 바닐라 · 말차 · 초콜릿 베이스 + 우유 + 얼음</small>
+              </section>
+            ) : null}
             <div className="recipe-grid">
-              {menuCatalog.map((menu) => {
+              {visibleRecipes.map((menu) => {
                 const found = discovered.includes(menu.id);
                 const available = menu.stage <= unlockedStage;
                 return (
-                  <article key={menu.id} className={found ? "found" : available ? "available" : "locked"}>
+                  <article
+                    key={menu.id}
+                    className={found ? "found" : available ? "available" : "locked"}
+                    style={{ "--tier-color": recipeTierMeta[menu.tier].color } as CSSProperties}
+                  >
                     <i>{found ? "✓" : "?"}</i>
-                    <small>STAGE {menu.stage}</small>
+                    <small>
+                      {menu.tier}단계 · {recipeTierMeta[menu.tier].name}
+                    </small>
                     <h3>{found ? menu.name : available ? menu.name : "???"}</h3>
                     <p>{found ? menu.recipe : "조합에 성공하면 제조법이 공개됩니다"}</p>
-                    {found ? (
-                      <strong className="recipe-price">판매가 {menu.reward.toLocaleString("ko-KR")}원</strong>
+                    {found && menu.price ? (
+                      <strong className="recipe-price">판매가 {menu.price.toLocaleString("ko-KR")}원</strong>
                     ) : null}
                   </article>
                 );
@@ -241,6 +440,7 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
   const playerNickname = useGame(({ playerNickname }) => playerNickname);
   const [nicknameOpen, setNicknameOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [rankingOpen, setRankingOpen] = useState(false);
   useEffect(() => {
     soundPlayer.startLobbyMusic();
     const resume = () => soundPlayer.startLobbyMusic();
@@ -338,13 +538,22 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
         <button className="lobby-start" type="button" onClick={begin}>
           영업 시작
         </button>
-        <button className="lobby-upgrade" type="button" onClick={openUpgrade}>
-          카페 업그레이드 · {bankGold} G
-        </button>
+        <div className="lobby-secondary-actions">
+          <button className="lobby-upgrade" type="button" onClick={openUpgrade}>
+            카페 업그레이드 · {bankGold} G
+          </button>
+          <button className="lobby-ranking" type="button" onClick={() => setRankingOpen(true)}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5H5v3c0 2 2 3 4 3M16 5h3v3c0 2-2 3-4 3M8 3h8v5c0 3-2 5-4 5s-4-2-4-5V3Zm4 10v4m-4 4h8m-6-4h4" />
+            </svg>
+            랭킹
+          </button>
+        </div>
         <small>이동 WASD/방향키 · 작업 SPACE · 조합 ENTER</small>
       </section>
       {nicknameOpen ? <NicknameModal profile={profile} close={() => setNicknameOpen(false)} /> : null}
       {profileOpen ? <ProfileModal profile={profile} close={() => setProfileOpen(false)} /> : null}
+      {rankingOpen ? <LeaderboardModal close={() => setRankingOpen(false)} /> : null}
     </main>
   );
 };
@@ -405,12 +614,27 @@ const Shift = () => {
   const waterOpen = useGame(({ waterOpen }) => waterOpen);
   const closeWater = useGame(({ closeWater }) => closeWater);
   const takeWater = useGame(({ takeWater }) => takeWater);
+  const newDiscovery = useGame(({ newDiscovery }) => newDiscovery);
+  const clearDiscovery = useGame(({ clearDiscovery }) => clearDiscovery);
+  const seenMenuStages = useGame(({ seenMenuStages }) => seenMenuStages);
+  const markMenuStageSeen = useGame(({ markMenuStageSeen }) => markMenuStageSeen);
   const feverTarget = Math.max(3, 5 - Math.floor(shift.upgrades.feverCharge / 2));
   const previousWork = useRef(shift.activeWork);
   const previousReady = useRef(0);
   const previousOrders = useRef(shift.orderSequence);
-  const [menuIntroOpen, setMenuIntroOpen] = useState(true);
+  const previousShiftGold = useRef(shift.gold);
+  const previousShiftScore = useRef(shift.score);
+  const [earnedGold, setEarnedGold] = useState<Readonly<{
+    id: number;
+    amount: number;
+    score: number;
+  }> | null>(null);
+  const [menuIntroOpen, setMenuIntroOpen] = useState(() => !seenMenuStages.includes(shift.stageId));
   const newlyAvailableMenus = menuCatalog.filter(({ stage }) => stage === shift.stageId);
+  const activeRuntime = shift.activeWork ? shift.stations[shift.activeWork] : null;
+  const workProgress = activeRuntime?.total
+    ? Math.round(((activeRuntime.total - activeRuntime.remaining) / activeRuntime.total) * 100)
+    : 0;
   useEffect(() => {
     if (menuIntroOpen) return;
     const id = window.setInterval(tick, 1000);
@@ -433,15 +657,32 @@ const Shift = () => {
     return () => window.removeEventListener("keydown", chooseWater);
   }, [closeWater, takeWater, waterOpen]);
   useEffect(() => {
+    if (!newDiscovery) return;
+    const timeout = window.setTimeout(clearDiscovery, 3200);
+    return () => window.clearTimeout(timeout);
+  }, [clearDiscovery, newDiscovery]);
+  useEffect(() => {
     if (shift.activeWork && previousWork.current !== shift.activeWork) soundPlayer.playMachineStart();
     previousWork.current = shift.activeWork;
     const ready = Object.values(shift.stations).filter(({ phase }) => phase === "ready").length;
     if (ready > previousReady.current) soundPlayer.playMachineReady();
     previousReady.current = ready;
-    if (shift.orderSequence > previousOrders.current) soundPlayer.playCoin();
+    if (shift.orderSequence > previousOrders.current) {
+      const amount = Math.max(0, shift.gold - previousShiftGold.current);
+      const score = Math.max(0, shift.score - previousShiftScore.current);
+      soundPlayer.playCoin();
+      if (amount > 0) setEarnedGold({ id: shift.orderSequence, amount, score });
+    }
     previousOrders.current = shift.orderSequence;
+    previousShiftGold.current = shift.gold;
+    previousShiftScore.current = shift.score;
     if (shift.notice === "음료 조합 성공") soundPlayer.playCombine();
-  }, [shift.activeWork, shift.notice, shift.orderSequence, shift.stations]);
+  }, [shift.activeWork, shift.gold, shift.notice, shift.orderSequence, shift.score, shift.stations]);
+  useEffect(() => {
+    if (!earnedGold) return;
+    const timeout = window.setTimeout(() => setEarnedGold(null), 1800);
+    return () => window.clearTimeout(timeout);
+  }, [earnedGold]);
   useEffect(() => {
     if (!fridgeOpen) return;
     const choose = (event: KeyboardEvent) => {
@@ -462,6 +703,19 @@ const Shift = () => {
   return (
     <main className={`game-screen ${shift.fever ? "fever" : ""}`}>
       <CafeScene />
+      {newDiscovery ? (
+        <section className="recipe-discovery" role="status" aria-live="polite">
+          <div className="discovery-rays" />
+          <small>NEW RECIPE DISCOVERED</small>
+          <strong>{labels[newDiscovery]}</strong>
+          <span>레시피 도감에 새 제조법이 등록되었습니다!</span>
+          <div className="discovery-sparkles" aria-hidden="true">
+            {Array.from({ length: 12 }, (_, index) => (
+              <i key={index} />
+            ))}
+          </div>
+        </section>
+      ) : null}
       {menuIntroOpen ? (
         <section className="menu-unlock-modal" role="dialog" aria-modal="true" aria-label="새 메뉴 안내">
           <div>
@@ -476,7 +730,13 @@ const Shift = () => {
                 </article>
               ))}
             </div>
-            <button type="button" onClick={() => setMenuIntroOpen(false)}>
+            <button
+              type="button"
+              onClick={() => {
+                markMenuStageSeen(shift.stageId);
+                setMenuIntroOpen(false);
+              }}
+            >
               영업 시작
             </button>
           </div>
@@ -495,30 +755,71 @@ const Shift = () => {
           <small>보유 GOLD</small>
           <strong>{bankGold + shift.gold} G</strong>
         </div>
+        <div className="score-card">
+          <small>영업 SCORE</small>
+          <strong>{shift.score.toLocaleString("ko-KR")} P</strong>
+        </div>
         <button type="button" onClick={exit}>
           조기 마감
         </button>
       </header>
+      {shift.activeWork && activeRuntime?.phase === "processing" ? (
+        <section className="work-progress" aria-label="현재 설비 작업 진행도">
+          <div>
+            <small>NOW WORKING</small>
+            <strong>{stationNames[shift.activeWork]}</strong>
+          </div>
+          <div
+            className="work-progress-track"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={workProgress}
+          >
+            <i style={{ width: `${workProgress}%` }} />
+          </div>
+          <b>{activeRuntime.remaining}s</b>
+        </section>
+      ) : null}
+      {earnedGold ? (
+        <div className="gold-earned-fx" key={earnedGold.id} role="status" aria-live="polite">
+          <strong>+{earnedGold.amount.toLocaleString("ko-KR")}G</strong>
+          <b>+{earnedGold.score.toLocaleString("ko-KR")}P</b>
+          <div className="coin-flight" aria-hidden="true">
+            {Array.from({ length: 7 }, (_, index) => (
+              <i key={index}>G</i>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <aside className="inventory">
         <small>숫자키 1~9 선택</small>
         {shift.inventory.length ? (
-          shift.inventory.map((item, index) => (
-            <div className={`inventory-item ${item.uid === selectedUid ? "selected" : ""}`} key={item.uid}>
-              <button className="inventory-select" onClick={() => select(item.uid)} type="button">
-                <b>{index + 1}</b>
-                {labels[item.itemId]}
-              </button>
-              <button
-                className="inventory-remove"
-                type="button"
-                aria-label={`${labels[item.itemId]} 버리기`}
-                title="버리기"
-                onClick={() => discard(item.uid)}
+          shift.inventory.map((item, index) => {
+            const tier = recipeTierOf(item.itemId);
+            return (
+              <div
+                className={`inventory-item ${item.uid === selectedUid ? "selected" : ""}`}
+                key={item.uid}
+                style={{ "--tier-color": recipeTierMeta[tier].color } as CSSProperties}
               >
-                ×
-              </button>
-            </div>
-          ))
+                <button className="inventory-select" onClick={() => select(item.uid)} type="button">
+                  <b>{index + 1}</b>
+                  <span>{labels[item.itemId]}</span>
+                  <small>{tier}단계</small>
+                </button>
+                <button
+                  className="inventory-remove"
+                  type="button"
+                  aria-label={`${labels[item.itemId]} 버리기`}
+                  title="버리기"
+                  onClick={() => discard(item.uid)}
+                >
+                  ×
+                </button>
+              </div>
+            );
+          })
         ) : (
           <span>비어 있음</span>
         )}
@@ -540,18 +841,24 @@ const Shift = () => {
             <h2>재료 꺼내기</h2>
             <span>숫자키 1~9, 0 또는 터치로 재료를 선택하세요.</span>
             <div className="fridge-grid">
-              {fridgeIngredients.map(({ itemId, minStage }, index) => (
-                <button
-                  type="button"
-                  key={itemId}
-                  disabled={shift.stageId < minStage}
-                  onClick={() => takeFromFridge(itemId)}
-                >
-                  <i>{index === 9 ? 0 : index + 1}</i>
-                  <b>{labels[itemId]}</b>
-                  <small>{shift.stageId < minStage ? `STAGE ${minStage} 해금` : "즉시 꺼내기"}</small>
-                </button>
-              ))}
+              {fridgeIngredients.map(({ itemId, minStage }, index) => {
+                const tier = recipeTierOf(itemId);
+                return (
+                  <button
+                    type="button"
+                    key={itemId}
+                    disabled={shift.stageId < minStage}
+                    style={{ "--tier-color": recipeTierMeta[tier].color } as CSSProperties}
+                    onClick={() => takeFromFridge(itemId)}
+                  >
+                    <i>{index === 9 ? 0 : index + 1}</i>
+                    <b>{labels[itemId]}</b>
+                    <small>
+                      {shift.stageId < minStage ? `STAGE ${minStage} 해금` : `${tier}단계 · 즉시 꺼내기`}
+                    </small>
+                  </button>
+                );
+              })}
             </div>
             <button className="fridge-close" type="button" onClick={closeFridge}>
               닫기 · ESC
@@ -609,15 +916,27 @@ const Shift = () => {
   );
 };
 
-const Result = () => {
+const Result = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
   const shift = useGame(({ shift }) => shift);
   const exit = useGame(({ exit }) => exit);
   const start = useGame(({ start }) => start);
   const openUpgrade = useGame(({ openUpgrade }) => openUpgrade);
   const bankGold = useGame(({ bankGold }) => bankGold);
+  const breakdown = calculateShiftScore(shift);
+  const submitted = useRef(false);
+  const [scoreStatus, setScoreStatus] = useState(profile ? "랭킹 기록 저장 중" : "게스트 기록");
   useEffect(() => {
     soundPlayer.startLobbyMusic();
   }, []);
+  useEffect(() => {
+    if (!profile || submitted.current) return;
+    submitted.current = true;
+    void saveShiftScore(shift, breakdown)
+      .then(({ isPersonalBest }) =>
+        setScoreStatus(isPersonalBest ? "개인 최고 기록 갱신!" : "랭킹 기록 저장 완료"),
+      )
+      .catch(() => setScoreStatus("점수 저장 실패 · 로그인 상태를 확인하세요"));
+  }, [breakdown, profile, shift]);
   return (
     <main className="result-screen">
       <section>
@@ -628,6 +947,32 @@ const Result = () => {
           <span>
             {shift.orderSequence}잔 완료 · 보유 골드 {bankGold} G
           </span>
+        </div>
+        <div className="result-score">
+          <small>{scoreStatus}</small>
+          <strong>{breakdown.total.toLocaleString("ko-KR")} P</strong>
+          <dl>
+            <div>
+              <dt>주문 처리</dt>
+              <dd>{breakdown.orderPoints.toLocaleString("ko-KR")}</dd>
+            </div>
+            <div>
+              <dt>정확도 {breakdown.accuracy}%</dt>
+              <dd>+{breakdown.accuracyBonus}</dd>
+            </div>
+            <div>
+              <dt>최대 콤보 {shift.maxCombo}</dt>
+              <dd>+{breakdown.comboBonus}</dd>
+            </div>
+            <div>
+              <dt>만족도 {breakdown.averageSatisfaction}</dt>
+              <dd>+{breakdown.satisfactionBonus}</dd>
+            </div>
+            <div>
+              <dt>정상 마감</dt>
+              <dd>+{breakdown.closingBonus}</dd>
+            </div>
+          </dl>
         </div>
         <button type="button" onClick={openUpgrade}>
           카페 업그레이드
@@ -643,65 +988,166 @@ const Result = () => {
   );
 };
 
-const upgradeInfo: ReadonlyArray<Readonly<{ id: UpgradeId; name: string; description: string }>> = [
-  { id: "speed", name: "설비 출력", description: "모든 제조 시간을 단계마다 12% 단축" },
-  { id: "movement", name: "바리스타 운동화", description: "캐릭터 기본 이동속도를 단계마다 10% 증가" },
-  { id: "feverCharge", name: "피버 부스터", description: "2단계마다 피버 발동에 필요한 콤보를 1회 감소" },
-  { id: "feverDuration", name: "피버 타이머", description: "피버 지속시간을 단계마다 3초 연장" },
-  { id: "tips", name: "서비스 트레이닝", description: "모든 주문 팁과 정산 골드를 단계마다 6% 증가" },
-  {
-    id: "automation",
-    name: "오토 바리스타 모듈",
-    description: "획득한 재료가 유효한 레시피를 이루면 즉시 자동 조합",
-  },
-];
-
-const Upgrade = () => {
+const Upgrade = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
   const bankGold = useGame(({ bankGold }) => bankGold);
   const upgrades = useGame(({ upgrades }) => upgrades);
   const buyUpgrade = useGame(({ buyUpgrade }) => buyUpgrade);
+  const applyUpgradePurchase = useGame(({ applyUpgradePurchase }) => applyUpgradePurchase);
   const start = useGame(({ start }) => start);
   const exit = useGame(({ exit }) => exit);
+  const [selectedId, setSelectedId] = useState<UpgradeId>("speed");
+  const [treeNodes, setTreeNodes] = useState(upgradeNodes);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState("");
+  const findNode = (id: UpgradeId) => treeNodes.find((node) => node.id === id) ?? upgradeNodeById(id);
+  const selected = findNode(selectedId);
+  const selectedLevel = upgrades[selectedId];
+  const selectedCost = selected.costs[selectedLevel] ?? 0;
+  const unmet = unmetUpgradeRequirements(selected, upgrades);
+  const purchase = async () => {
+    if (!canBuyUpgrade(selected, upgrades, bankGold) || purchasing) return;
+    setPurchasing(true);
+    setError("");
+    try {
+      if (profile) {
+        const result = await purchaseUpgrade(selectedId);
+        applyUpgradePurchase(result.upgradeId, result.newLevel, result.gold);
+      } else {
+        buyUpgrade(selectedId);
+      }
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : "업그레이드 구매에 실패했습니다.";
+      setError(
+        message.includes("PREREQUISITE")
+          ? "먼저 연결된 선행 업그레이드를 완료하세요."
+          : message.includes("INSUFFICIENT")
+            ? "골드가 부족합니다."
+            : message,
+      );
+    } finally {
+      setPurchasing(false);
+    }
+  };
   useEffect(() => {
     soundPlayer.startLobbyMusic();
+    void loadUpgradeCatalog()
+      .then((catalog) => {
+        if (catalog.length)
+          setTreeNodes(
+            upgradeNodes.map((fallback) => catalog.find(({ id }) => id === fallback.id) ?? fallback),
+          );
+      })
+      .catch((reason) => console.warn("업그레이드 카탈로그를 읽지 못해 번들 데이터를 사용합니다.", reason));
   }, []);
   return (
     <main className="upgrade-screen">
-      <section>
-        <p>CAFE WORKSHOP</p>
-        <h1>영업 준비</h1>
-        <strong className="bank">{bankGold} G</strong>
-        <div className="upgrade-list">
-          {upgradeInfo.map(({ id, name, description }) => {
-            const level = upgrades[id];
-            const max = maxUpgradeLevel(id);
-            const cost = upgradeCost(id, level);
-            return (
-              <article key={id} className={id === "automation" ? "premium" : ""}>
-                <div>
-                  <h2>{name}</h2>
-                  <span>{description}</span>
-                  <small>
-                    Lv.{level} / {max}
+      <section className="upgrade-workshop">
+        <header className="upgrade-header">
+          <div>
+            <p>CAFE WORKSHOP</p>
+            <h1>카페 성장 트리</h1>
+          </div>
+          <strong className="bank">{bankGold.toLocaleString()} G</strong>
+          <div className="upgrade-actions">
+            <button type="button" onClick={() => start()}>
+              영업 시작
+            </button>
+            <button className="secondary" type="button" onClick={exit}>
+              타이틀
+            </button>
+          </div>
+        </header>
+        <div className="upgrade-tree-layout">
+          <div className="upgrade-tree-viewport">
+            <div className="upgrade-tree-grid">
+              {upgradeCategories.map((category) => {
+                const categoryNodes = treeNodes.filter((node) => node.category === category.id);
+                return (
+                  <section
+                    className="upgrade-lane"
+                    key={category.id}
+                    style={{ "--category-color": category.color } as CSSProperties}
+                  >
+                    <header>
+                      <strong>{category.name}</strong>
+                      {category.id === "automation" ? <small>복합 선행 조건</small> : null}
+                    </header>
+                    <div className="upgrade-lane-nodes">
+                      {categoryNodes.map((node, index) => {
+                        const level = upgrades[node.id];
+                        const locked = unmetUpgradeRequirements(node, upgrades).length > 0;
+                        const internalRequirement = node.requirements.find(
+                          ({ upgradeId }) => findNode(upgradeId).category === node.category,
+                        );
+                        const connectorUnlocked = internalRequirement
+                          ? upgrades[internalRequirement.upgradeId] >= internalRequirement.level
+                          : false;
+                        return (
+                          <div className="upgrade-node-wrap" key={node.id}>
+                            {index ? (
+                              <i className={`upgrade-connector ${connectorUnlocked ? "unlocked" : ""}`} />
+                            ) : null}
+                            <button
+                              type="button"
+                              aria-label={`${node.name} Lv.${level}`}
+                              className={`upgrade-node ${node.id === selectedId ? "selected" : ""} ${locked ? "locked" : ""} ${node.premium ? "premium" : ""}`}
+                              onClick={() => setSelectedId(node.id)}
+                            >
+                              <UpgradeIcon id={node.id} />
+                              <span>
+                                {locked
+                                  ? "LOCK"
+                                  : level >= node.maxLevel
+                                    ? "MAX"
+                                    : `${level}/${node.maxLevel}`}
+                              </span>
+                            </button>
+                            <em>{node.name}</em>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </div>
+          <aside className="upgrade-detail">
+            <small>{upgradeCategories.find(({ id }) => id === selected.category)!.name}</small>
+            <h2>{selected.name}</h2>
+            <p>{selected.description}</p>
+            <strong>
+              Lv.{selectedLevel} / {selected.maxLevel}
+            </strong>
+            {selected.requirements.length ? (
+              <div className="upgrade-requirements">
+                <span>선행 조건</span>
+                {selected.requirements.map((requirement) => (
+                  <small
+                    key={requirement.upgradeId}
+                    className={upgrades[requirement.upgradeId] >= requirement.level ? "done" : ""}
+                  >
+                    {findNode(requirement.upgradeId).name} Lv.{requirement.level}
                   </small>
-                </div>
-                <button
-                  type="button"
-                  disabled={level >= max || bankGold < cost}
-                  onClick={() => buyUpgrade(id)}
-                >
-                  {level >= max ? "MAX" : `${cost.toLocaleString()} G`}
-                </button>
-              </article>
-            );
-          })}
+                ))}
+              </div>
+            ) : null}
+            {error ? <p className="upgrade-error">{error}</p> : null}
+            <button
+              type="button"
+              disabled={!canBuyUpgrade(selected, upgrades, bankGold) || purchasing}
+              onClick={() => void purchase()}
+            >
+              {selectedLevel >= selected.maxLevel
+                ? "MAX LEVEL"
+                : unmet.length
+                  ? "선행 업그레이드 필요"
+                  : purchasing
+                    ? "구매 처리 중"
+                    : `${selectedCost.toLocaleString()} G · 업그레이드`}
+            </button>
+          </aside>
         </div>
-        <button className="primary" type="button" onClick={() => start()}>
-          다음 영업 시작
-        </button>
-        <button className="secondary" type="button" onClick={exit}>
-          타이틀로
-        </button>
       </section>
     </main>
   );
@@ -713,6 +1159,7 @@ export const App = () => {
   const upgrades = useGame(({ upgrades }) => upgrades);
   const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
   const discoveredRecipes = useGame(({ discoveredRecipes }) => discoveredRecipes);
+  const seenMenuStages = useGame(({ seenMenuStages }) => seenMenuStages);
   const hydrateProgress = useGame(({ hydrateProgress }) => hydrateProgress);
   const setCombinationRecipes = useGame(({ setCombinationRecipes }) => setCombinationRecipes);
   const [profile, setProfile] = useState<PlayerProfile | null>(null);
@@ -746,24 +1193,34 @@ export const App = () => {
     setCloudReady(false);
     void loadProgress(profile.userId)
       .then((progress) => {
-        hydrateProgress(progress.gold, progress.unlockedStage, progress.upgrades, progress.discoveredRecipes);
+        hydrateProgress(
+          progress.gold,
+          progress.unlockedStage,
+          progress.upgrades,
+          progress.discoveredRecipes,
+          progress.seenMenuStages,
+        );
         setCloudReady(true);
       })
       .catch((error) => {
         console.error(error);
-        hydrateProgress(0, 1, {}, []);
+        hydrateProgress(0, 1, {}, [], []);
         setCloudReady(true);
       });
   }, [hydrateProgress, profile]);
   useEffect(() => {
     if (!profile || !cloudReady) return;
     const timeout = window.setTimeout(() => {
-      void saveProgress(profile.userId, { gold: bankGold, unlockedStage, upgrades, discoveredRecipes }).catch(
-        console.error,
-      );
+      void saveProgress(profile.userId, {
+        gold: bankGold,
+        unlockedStage,
+        upgrades,
+        discoveredRecipes,
+        seenMenuStages,
+      }).catch(console.error);
     }, 700);
     return () => window.clearTimeout(timeout);
-  }, [bankGold, cloudReady, discoveredRecipes, profile, unlockedStage, upgrades]);
+  }, [bankGold, cloudReady, discoveredRecipes, profile, seenMenuStages, unlockedStage, upgrades]);
   useEffect(() => {
     const click = (event: MouseEvent) => {
       if ((event.target as Element | null)?.closest("button:not(:disabled)")) soundPlayer.playUi();
@@ -786,16 +1243,16 @@ export const App = () => {
     screen === "title" ? (
       <Title profile={profile} />
     ) : screen === "result" ? (
-      <Result />
+      <Result profile={profile} />
     ) : screen === "upgrade" ? (
-      <Upgrade />
+      <Upgrade profile={profile} />
     ) : (
       <Shift />
     );
   return (
     <>
       {content}
-      <RecipeBook />
+      {screen !== "upgrade" ? <RecipeBook /> : null}
     </>
   );
 };

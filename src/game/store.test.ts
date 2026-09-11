@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { exitEarnings, unlockedAfterFullDay, useGame } from "./store";
+import { defaultUpgrades } from "./rules";
 
 describe("exitEarnings", () => {
   it("영업 중 나가면 현재까지 획득한 골드를 정산한다", () => {
@@ -27,19 +28,26 @@ describe("authenticated progress isolation", () => {
   it("replaces guest gold and upgrades with the signed-in account values", () => {
     useGame.setState({
       bankGold: 9999,
-      upgrades: { speed: 5, movement: 5, feverCharge: 5, feverDuration: 5, tips: 5, automation: 1 },
+      upgrades: {
+        ...defaultUpgrades,
+        speed: 5,
+        movement: 5,
+        feverCharge: 5,
+        feverDuration: 5,
+        tips: 5,
+        automation: 1,
+      },
     });
 
     useGame.getState().hydrateProgress(120, 2, { speed: 1 }, []);
 
     expect(useGame.getState().bankGold).toBe(120);
-    expect(useGame.getState().upgrades).toEqual({
-      speed: 1,
-      movement: 0,
-      feverCharge: 0,
-      feverDuration: 0,
-      tips: 0,
-      automation: 0,
-    });
+    expect(useGame.getState().upgrades).toEqual({ ...defaultUpgrades, speed: 1 });
+  });
+  it("keeps menu announcements once per account and stage", () => {
+    useGame.getState().hydrateProgress(0, 3, {}, [], [1, 2]);
+    useGame.getState().markMenuStageSeen(3);
+    useGame.getState().markMenuStageSeen(3);
+    expect(useGame.getState().seenMenuStages).toEqual([1, 2, 3]);
   });
 });

@@ -11,7 +11,7 @@ import {
 import { memo, Suspense, useEffect, useRef, useState, type RefObject } from "react";
 import * as THREE from "three";
 import { soundPlayer } from "../audio/soundPlayer";
-import { stationLabels, type StationId } from "../game/catalog";
+import { stationLabels, stationUnlockStage, type StationId } from "../game/catalog";
 import { resolveCafeMovement } from "../game/movement";
 import { useGame } from "../game/store";
 
@@ -22,7 +22,6 @@ type StationPlacement = Readonly<{
   position: Point;
   rotation?: Point;
   scale?: number;
-  minStage?: number;
 }>;
 
 const stations: readonly StationPlacement[] = [
@@ -36,7 +35,6 @@ const stations: readonly StationPlacement[] = [
     model: "sparkling-machine.glb",
     position: [1.65, 1.26, -3.72],
     scale: 0.58,
-    minStage: 5,
   },
   { id: "fridge", model: "ingredient-fridge.glb", position: [5.55, 0, -3.9], scale: 0.9 },
   {
@@ -44,23 +42,18 @@ const stations: readonly StationPlacement[] = [
     model: "ice-machine.glb",
     position: [2.75, 1.26, -3.72],
     scale: 0.66,
-    minStage: 1,
   },
   {
     id: "coldBrew",
     model: "cold-brew-tower.glb",
-    position: [-6.55, 1.26, 2.35],
-    rotation: [0, Math.PI / 2, 0],
+    position: [-6.75, 1.26, -3.72],
     scale: 0.62,
-    minStage: 13,
   },
   {
     id: "blender",
     model: "blender.glb",
-    position: [-6.55, 1.26, 3.25],
-    rotation: [0, Math.PI / 2, 0],
+    position: [3.85, 1.26, -3.72],
     scale: 0.62,
-    minStage: 15,
   },
   { id: "serve", model: "pickup-bell.glb", position: [1.55, 1.26, 3.55], scale: 0.5 },
 ];
@@ -281,6 +274,7 @@ const CharacterController = () => {
   const fridgeOpen = useGame(({ fridgeOpen }) => fridgeOpen);
   const waterOpen = useGame(({ waterOpen }) => waterOpen);
   const movementLevel = useGame(({ upgrades }) => upgrades.movement);
+  const multitaskLevel = useGame(({ upgrades }) => upgrades.multitask);
   const setNearbyStation = useGame(({ setNearbyStation }) => setNearbyStation);
   const root = useRef<THREE.Group>(null);
   const keys = useRef(new Set<string>());
@@ -356,7 +350,7 @@ const CharacterController = () => {
   }, [activeWork]);
 
   useFrame(({ camera, clock }, delta) => {
-    const movementLocked = fridgeOpen || waterOpen || (Boolean(activeWork) && !fever);
+    const movementLocked = fridgeOpen || waterOpen || (Boolean(activeWork) && !fever && !multitaskLevel);
     if (feverEffect.current) {
       feverEffect.current.rotation.y = clock.elapsedTime * 3.5;
       feverEffect.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 7) * 0.08);
@@ -435,7 +429,7 @@ const CharacterController = () => {
     let closest: StationId | null = null;
     let distance = 1.55;
     for (const placement of stationsForStage(stageId)) {
-      if ((placement.minStage ?? 1) > stageId) continue;
+      if (stationUnlockStage[placement.id] > stageId) continue;
       const id = placement.id;
       const target = new THREE.Vector3(...placement.position);
       const current = Math.hypot(position.current.x - target.x, position.current.z - target.z);
@@ -503,7 +497,7 @@ const CharacterController = () => {
       </group>
       <CharacterCameraFocus position={position} />
       {stationsForStage(stageId)
-        .filter(({ minStage = 1 }) => minStage <= stageId)
+        .filter(({ id }) => stationUnlockStage[id] <= stageId)
         .map((placement) => (
           <Station key={placement.id} placement={placement} near={near === placement.id} />
         ))}
@@ -704,7 +698,7 @@ export const CafeScene = memo(() => (
 stations.forEach(({ model }) => {
   if (model) useGLTF.preload(`/assets/models/${model}`);
 });
-for (let stage = 1; stage <= 12; stage += 1)
+for (let stage = 1; stage <= 15; stage += 1)
   useGLTF.preload(`/assets/models/cafe-shell-stage-${String(stage).padStart(2, "0")}.glb`);
 useGLTF.preload("/assets/models/jieun.glb");
 useGLTF.preload("/assets/models/customer.glb");

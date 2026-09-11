@@ -1,14 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import {
-  drinkIds,
-  recipes,
-  stages,
-  type CombinationRecipe,
-  type DrinkId,
-  type ItemId,
-  type StationId,
-} from "./catalog";
+import { recipes, stages, type CombinationRecipe, type ItemId, type StationId } from "./catalog";
 import {
   autoCombine,
   combineSelected,
@@ -21,9 +13,10 @@ import {
   type Upgrades,
 } from "./rules";
 import { guestProgressStorage, guestProgressStorageKey } from "./progressPersistence";
+import { canBuyUpgrade, maxUpgradeLevel, upgradeCost, upgradeNodeById, type UpgradeId } from "./upgradeTree";
 
 export type Screen = "title" | "shift" | "result" | "upgrade";
-export type UpgradeId = keyof Upgrades;
+export type { UpgradeId } from "./upgradeTree";
 export const exitEarnings = (screen: Screen, sessionGold: number) =>
   screen === "shift" ? Math.max(0, sessionGold) : 0;
 export const unlockedAfterFullDay = (unlockedStage: number, playedStage: number) =>
@@ -39,22 +32,27 @@ type GameStore = Readonly<{
   upgrades: Upgrades;
   selectedStage: number;
   unlockedStage: number;
-  discoveredRecipes: readonly DrinkId[];
+  discoveredRecipes: readonly ItemId[];
+  seenMenuStages: readonly number[];
+  newDiscovery: ItemId | null;
   combinationRecipes: readonly CombinationRecipe[];
   setCombinationRecipes: (recipes: readonly CombinationRecipe[]) => void;
   playerNickname: string | null;
   setPlayerNickname: (nickname: string) => void;
+  markMenuStageSeen: (stageId: number) => void;
   hydrateProgress: (
     gold: number,
     unlockedStage: number,
     upgrades: Partial<Upgrades>,
-    discoveredRecipes?: readonly DrinkId[],
+    discoveredRecipes?: readonly ItemId[],
+    seenMenuStages?: readonly number[],
   ) => void;
   replaceProgress: (
     gold: number,
     unlockedStage: number,
     upgrades: Partial<Upgrades>,
-    discoveredRecipes?: readonly DrinkId[],
+    discoveredRecipes?: readonly ItemId[],
+    seenMenuStages?: readonly number[],
   ) => void;
   resetGuestProgress: () => void;
   start: () => void;
@@ -65,6 +63,7 @@ type GameStore = Readonly<{
   tick: () => void;
   select: (uid: string | null) => void;
   discard: (uid: string) => void;
+  clearDiscovery: () => void;
   interact: (station: StationId) => void;
   interactNearby: () => void;
   combine: () => void;
@@ -74,14 +73,9 @@ type GameStore = Readonly<{
   takeWater: (itemId: "hot_water" | "cold_water") => void;
   takeFromFridge: (itemId: ItemId) => void;
   buyUpgrade: (upgrade: UpgradeId) => void;
+  applyUpgradePurchase: (upgrade: UpgradeId, level: number, gold: number) => void;
 }>;
-
-export const maxUpgradeLevel = (upgrade: UpgradeId) => (upgrade === "automation" ? 1 : 5);
-export const upgradeCost = (upgrade: UpgradeId, level: number) =>
-  upgrade === "automation"
-    ? 50000
-    : { speed: 8000, movement: 6000, feverCharge: 12000, feverDuration: 10000, tips: 9000 }[upgrade] *
-      (level + 1);
+export { maxUpgradeLevel, upgradeCost } from "./upgradeTree";
 const mergeUpgrades = (local: Upgrades, cloud: Partial<Upgrades>): Upgrades =>
   Object.fromEntries(
     Object.entries(local).map(([id, level]) => [
@@ -89,14 +83,13 @@ const mergeUpgrades = (local: Upgrades, cloud: Partial<Upgrades>): Upgrades =>
       Math.max(level, typeof cloud[id as UpgradeId] === "number" ? cloud[id as UpgradeId]! : 0),
     ]),
   ) as Upgrades;
-const mergeDiscoveries = (current: readonly DrinkId[], shift: ShiftState) => [
-  ...new Set([
-    ...current,
-    ...shift.inventory
-      .map(({ itemId }) => itemId)
-      .filter((itemId): itemId is DrinkId => drinkIds.includes(itemId as DrinkId)),
-  ]),
+const mergeDiscoveries = (current: readonly ItemId[], shift: ShiftState) => [
+  ...new Set([...current, ...shift.inventory.map(({ itemId }) => itemId)]),
 ];
+const latestDiscovery = (current: readonly ItemId[], previous: ShiftState, next: ShiftState) =>
+  next.inventory.find(
+    ({ uid, itemId }) => !current.includes(itemId) && !previous.inventory.some((item) => item.uid === uid),
+  )?.itemId ?? null;
 
 export const useGame = create<GameStore>()(
   persist(
@@ -112,20 +105,26 @@ export const useGame = create<GameStore>()(
       selectedStage: 1,
       unlockedStage: 1,
       discoveredRecipes: [],
+      seenMenuStages: [],
+      newDiscovery: null,
       combinationRecipes: recipes,
       playerNickname: null,
       setCombinationRecipes: (combinationRecipes) =>
         set({ combinationRecipes: combinationRecipes.length ? combinationRecipes : recipes }),
       setPlayerNickname: (playerNickname) => set({ playerNickname }),
-      hydrateProgress: (gold, unlockedStage, cloudUpgrades, cloudRecipes = []) =>
+      markMenuStageSeen: (stageId) =>
+        set(({ seenMenuStages }) => ({ seenMenuStages: [...new Set([...seenMenuStages, stageId])] })),
+      hydrateProgress: (gold, unlockedStage, cloudUpgrades, cloudRecipes = [], seenMenuStages = []) =>
         set({
           bankGold: Math.max(0, gold),
           unlockedStage: Math.max(1, Math.min(stages.length, unlockedStage)),
           selectedStage: 1,
           upgrades: { ...defaultUpgrades, ...cloudUpgrades },
           discoveredRecipes: [...new Set(cloudRecipes)],
+          seenMenuStages: [...new Set(seenMenuStages)],
+          newDiscovery: null,
         }),
-      replaceProgress: (gold, unlockedStage, cloudUpgrades, cloudRecipes = []) =>
+      replaceProgress: (gold, unlockedStage, cloudUpgrades, cloudRecipes = [], seenMenuStages = []) =>
         set({
           screen: "title",
           bankGold: Math.max(0, gold),
@@ -133,6 +132,8 @@ export const useGame = create<GameStore>()(
           selectedStage: 1,
           upgrades: { ...defaultUpgrades, ...cloudUpgrades },
           discoveredRecipes: [...new Set(cloudRecipes)],
+          seenMenuStages: [...new Set(seenMenuStages)],
+          newDiscovery: null,
           shift: createShift(),
           selectedUid: null,
           nearbyStation: null,
@@ -147,6 +148,8 @@ export const useGame = create<GameStore>()(
           selectedStage: 1,
           upgrades: defaultUpgrades,
           discoveredRecipes: [],
+          seenMenuStages: [],
+          newDiscovery: null,
           playerNickname: null,
           shift: createShift(),
           selectedUid: null,
@@ -162,6 +165,7 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          newDiscovery: null,
         })),
       exit: () =>
         set(({ screen, shift, bankGold, upgrades, selectedStage }) => ({
@@ -172,12 +176,14 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          newDiscovery: null,
         })),
       finish: () =>
         set(({ shift, bankGold, unlockedStage }) => ({
           screen: "result",
           selectedUid: null,
           nearbyStation: null,
+          newDiscovery: null,
           bankGold: bankGold + shift.gold,
           unlockedStage: unlockedAfterFullDay(unlockedStage, shift.stageId),
         })),
@@ -191,10 +197,13 @@ export const useGame = create<GameStore>()(
           shift: {
             ...shift,
             inventory: shift.inventory.filter((item) => item.uid !== uid),
+            score: Math.max(0, shift.score - 20),
+            discardedItems: shift.discardedItems + 1,
             notice: "재료를 버렸습니다",
           },
           selectedUid: selectedUid === uid ? null : selectedUid,
         })),
+      clearDiscovery: () => set({ newDiscovery: null }),
       interact: (station) =>
         set(({ shift, selectedUid }) => {
           if (station === "fridge") return { fridgeOpen: true };
@@ -208,6 +217,7 @@ export const useGame = create<GameStore>()(
           return {
             shift: next,
             discoveredRecipes: mergeDiscoveries(get().discoveredRecipes, next),
+            newDiscovery: latestDiscovery(get().discoveredRecipes, shift, next),
             selectedUid: selectedStillExists ? selectedUid : (newest?.uid ?? null),
           };
         }),
@@ -217,13 +227,17 @@ export const useGame = create<GameStore>()(
       },
       combine: () =>
         set(({ shift, selectedUid, discoveredRecipes, combinationRecipes }) => {
-          const next = combineSelected(shift, selectedUid, combinationRecipes);
+          const next = autoCombine(
+            combineSelected(shift, selectedUid, combinationRecipes),
+            combinationRecipes,
+          );
           const newest = next.inventory.find(
             ({ uid }) => !shift.inventory.some((previous) => previous.uid === uid),
           );
           return {
             shift: next,
             discoveredRecipes: mergeDiscoveries(discoveredRecipes, next),
+            newDiscovery: latestDiscovery(discoveredRecipes, shift, next),
             selectedUid: newest?.uid ?? selectedUid,
           };
         }),
@@ -236,6 +250,7 @@ export const useGame = create<GameStore>()(
           return {
             shift: { ...next, notice: itemId === "hot_water" ? "온수를 받았습니다" : "냉수를 받았습니다" },
             discoveredRecipes: mergeDiscoveries(discoveredRecipes, next),
+            newDiscovery: latestDiscovery(discoveredRecipes, shift, next),
             waterOpen: false,
           };
         }),
@@ -245,17 +260,20 @@ export const useGame = create<GameStore>()(
           return {
             shift: next,
             discoveredRecipes: mergeDiscoveries(discoveredRecipes, next),
+            newDiscovery: latestDiscovery(discoveredRecipes, shift, next),
             fridgeOpen: false,
           };
         }),
       buyUpgrade: (upgrade) =>
         set(({ upgrades, bankGold }) => {
+          const node = upgradeNodeById(upgrade);
+          if (!canBuyUpgrade(node, upgrades, bankGold)) return { bankGold, upgrades };
           const level = upgrades[upgrade];
-          if (level >= maxUpgradeLevel(upgrade)) return { bankGold, upgrades };
           const cost = upgradeCost(upgrade, level);
-          if (bankGold < cost) return { bankGold, upgrades };
           return { bankGold: bankGold - cost, upgrades: { ...upgrades, [upgrade]: level + 1 } };
         }),
+      applyUpgradePurchase: (upgrade, level, bankGold) =>
+        set(({ upgrades }) => ({ bankGold, upgrades: { ...upgrades, [upgrade]: level } })),
     }),
     {
       name: guestProgressStorageKey,
@@ -266,8 +284,17 @@ export const useGame = create<GameStore>()(
         selectedStage,
         unlockedStage,
         discoveredRecipes,
+        seenMenuStages,
         playerNickname,
-      }) => ({ bankGold, upgrades, selectedStage, unlockedStage, discoveredRecipes, playerNickname }),
+      }) => ({
+        bankGold,
+        upgrades,
+        selectedStage,
+        unlockedStage,
+        discoveredRecipes,
+        seenMenuStages,
+        playerNickname,
+      }),
       merge: (persisted, current) => {
         const saved = persisted as Partial<GameStore>;
         return {
@@ -277,6 +304,7 @@ export const useGame = create<GameStore>()(
           discoveredRecipes: [
             ...new Set([...(current.discoveredRecipes ?? []), ...(saved.discoveredRecipes ?? [])]),
           ],
+          seenMenuStages: [...new Set([...(current.seenMenuStages ?? []), ...(saved.seenMenuStages ?? [])])],
         };
       },
     },
