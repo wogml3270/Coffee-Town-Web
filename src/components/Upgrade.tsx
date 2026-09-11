@@ -145,9 +145,6 @@ export const Upgrade = () => {
           </div>
           <strong className="bank">{bankGold.toLocaleString()} G</strong>
           <div className="upgrade-actions">
-            <button type="button" onClick={() => start()}>
-              영업 시작
-            </button>
             <button className="secondary" type="button" onClick={exit}>
               홈으로
             </button>

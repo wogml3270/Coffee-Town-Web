@@ -338,7 +338,7 @@ const Title = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
         </button>
         <div className="lobby-secondary-actions">
           <button className="lobby-upgrade" type="button" onClick={openUpgrade}>
-            카페 업그레이드 · {bankGold} G
+            카페 업그레이드 · {bankGold.toLocaleString()} G
           </button>
           <button className="lobby-ranking" type="button" onClick={() => setRankingOpen(true)}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -562,7 +562,7 @@ const Shift = () => {
         </div>
         <div className="gold-card">
           <small>보유 GOLD</small>
-          <strong>{bankGold + shift.gold} G</strong>
+          <strong>{(bankGold + shift.gold).toLocaleString()} G</strong>
         </div>
         <div className="score-card">
           <small>영업 SCORE</small>

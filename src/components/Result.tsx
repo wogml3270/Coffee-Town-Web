@@ -28,7 +28,7 @@ export const Result = ({ profile, sync }: Readonly<{ profile: PlayerProfile | nu
         <div>
           <strong>+{shift.gold} G</strong>
           <span>
-            {shift.orderSequence}잔 완료 · 보유 골드 {bankGold} G
+            {shift.orderSequence}잔 완료 · 보유 골드 {bankGold.toLocaleString()} G
           </span>
         </div>
         <div className="result-score">
