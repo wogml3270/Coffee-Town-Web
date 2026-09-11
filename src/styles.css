@@ -119,6 +119,7 @@ button {
   backdrop-filter: blur(8px);
 }
 .hud > div {
+  min-width: 0;
   padding: 9px 12px;
 }
 .hud small {
@@ -307,13 +308,21 @@ button {
     background-position: 62% center;
   }
   .hud {
-    grid-template-columns: 0.6fr 1.5fr 0.75fr 0.75fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
   }
   .hud button {
     position: absolute;
     top: 61px;
     right: 0;
     min-height: 38px;
+  }
+  .hud > div {
+    min-width: 0;
+    padding: 8px 9px;
+  }
+  .hud strong {
+    font-size: 12px;
   }
   .notice {
     flex-direction: column;

@@ -2054,8 +2054,8 @@
 @media (max-width: 700px) {
   .recipe-book {
     top: auto;
-    right: 62px;
-    bottom: 78px;
+    right: 12px;
+    bottom: 168px;
   }
   .recipe-book.title {
     top: max(12px, env(safe-area-inset-top));
