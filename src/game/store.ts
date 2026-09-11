@@ -41,6 +41,8 @@ type GameStore = Readonly<{
   nearbyStation: StationId | null;
   fridgeOpen: boolean;
   waterOpen: boolean;
+  recipeBookOpen: boolean;
+  setRecipeBookOpen: (open: boolean) => void;
   bankGold: number;
   upgrades: Upgrades;
   selectedStage: number;
@@ -71,6 +73,7 @@ type GameStore = Readonly<{
   start: () => Promise<void>;
   exit: () => void;
   finish: () => void;
+  finishEarly: () => void;
   openUpgrade: () => void;
   setStage: (stage: number) => void;
   tick: () => void;
@@ -108,6 +111,7 @@ export const useGame = create<GameStore>()(
       nearbyStation: null,
       fridgeOpen: false,
       waterOpen: false,
+      recipeBookOpen: false,
       bankGold: 0,
       upgrades: defaultUpgrades,
       selectedStage: 1,
@@ -148,6 +152,7 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          recipeBookOpen: false,
         }),
       resetGuestProgress: () =>
         set({
@@ -167,6 +172,7 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          recipeBookOpen: false,
         }),
       start: async () => {
         if (get().screen === "shift") return;
@@ -184,6 +190,7 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          recipeBookOpen: false,
           newDiscovery: null,
         });
       },
@@ -209,6 +216,7 @@ export const useGame = create<GameStore>()(
           nearbyStation: null,
           fridgeOpen: false,
           waterOpen: false,
+          recipeBookOpen: false,
           newDiscovery: null,
         });
       },
@@ -234,6 +242,27 @@ export const useGame = create<GameStore>()(
           unlockedStage: unlockedAfterFullDay(unlockedStage, shift.stageId),
         });
       },
+      finishEarly: () => {
+        const { screen, shift, bankGold, sessionId, actions, seenMenuStages } = get();
+        if (screen !== "shift") return;
+        if (sessionId && progressGateway)
+          void progressGateway.settle({
+            sessionId,
+            version: shiftProtocolVersion,
+            elapsed: 360 - shift.time,
+            actions,
+            seenMenuStages: seenMenuStages.filter((stage) => stage <= shift.stageId),
+          });
+        set({
+          screen: "result",
+          sessionId: null,
+          actions: [],
+          selectedUid: null,
+          nearbyStation: null,
+          newDiscovery: null,
+          bankGold: bankGold + shift.gold,
+        });
+      },
       purchase: async (id) => {
         if (progressGateway) await progressGateway.purchase(id);
         else get().buyUpgrade(id);
@@ -245,7 +274,11 @@ export const useGame = create<GameStore>()(
       select: (selectedUid) => set({ selectedUid }),
       act: (kind, target, slot) => {
         const state = get();
-        if (state.screen !== "shift" || state.shift.time <= 0) return;
+        // The recipe book pauses the clock and locks gameplay actions. Without
+        // this guard a player could keep processing/combining indefinitely
+        // while studying the recipe list. Ingredient pickers are excluded
+        // because their selection buttons intentionally dispatch actions.
+        if (state.screen !== "shift" || state.shift.time <= 0 || state.recipeBookOpen) return;
         if (state.actions.length >= 12000) {
           set({ shift: { ...state.shift, notice: "오늘의 작업 한도에 도달했습니다. 영업을 마감하세요." } });
           return;
@@ -301,6 +334,7 @@ export const useGame = create<GameStore>()(
       setNearbyStation: (nearbyStation) => set({ nearbyStation }),
       closeFridge: () => set({ fridgeOpen: false }),
       closeWater: () => set({ waterOpen: false }),
+      setRecipeBookOpen: (recipeBookOpen) => set({ recipeBookOpen }),
       takeWater: (itemId) => {
         get().act("water", itemId);
         set({ waterOpen: false });

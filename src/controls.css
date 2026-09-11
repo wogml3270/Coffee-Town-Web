@@ -1299,12 +1299,21 @@
 .recipe-book-modal {
   position: fixed;
   z-index: 1000;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: min(440px, 42vw);
+  top: 50%;
+  left: 50%;
+  width: min(92vw, 760px);
+  height: min(86vh, 900px);
   box-sizing: border-box;
-  padding: 10px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.recipe-book-modal::before {
+  position: fixed;
+  z-index: -1;
+  inset: -100vh -100vw;
+  background: #1c140db8;
+  content: "";
   pointer-events: none;
 }
 .recipe-book-modal > div:last-child {
@@ -1314,9 +1323,9 @@
   height: 100%;
   padding: 25px;
   border: 1px solid #d6b477;
-  border-radius: 24px 0 0 24px;
+  border-radius: 24px;
   background: linear-gradient(145deg, #fff8e8, #dfc79f);
-  box-shadow: -18px 0 48px #0007;
+  box-shadow: 0 22px 70px #0009;
   color: #35291f;
   pointer-events: auto;
   display: flex;
@@ -1395,11 +1404,11 @@
 @keyframes recipe-slide-in {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: scale(0.94);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: scale(1);
   }
 }
 .recipe-book-modal header {
@@ -2001,12 +2010,13 @@
     grid-template-columns: 1fr;
   }
   .recipe-book-modal {
-    width: min(92vw, 400px);
-    padding: 6px 0 6px 6px;
+    width: min(94vw, 560px);
+    height: min(88vh, 760px);
+    padding: 0;
   }
   .recipe-book-modal > div:last-child {
     padding: 18px;
-    border-radius: 20px 0 0 20px;
+    border-radius: 20px;
   }
 }
 

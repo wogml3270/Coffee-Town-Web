@@ -5,9 +5,10 @@ import { ItemImage } from "./ItemImage";
 import { RecipeIngredients } from "./RecipeIngredients";
 
 export const RecipeBook = () => {
-  const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<RecipeTier>(1);
   const screen = useGame(({ screen }) => screen);
+  const open = useGame(({ recipeBookOpen }) => recipeBookOpen);
+  const setOpen = useGame(({ setRecipeBookOpen }) => setRecipeBookOpen);
   const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
   const discovered = useGame(({ discoveredRecipes }) => discoveredRecipes);
   const visibleRecipes = recipeArchive.filter(({ tier }) => tier === tab);
@@ -18,13 +19,13 @@ export const RecipeBook = () => {
       if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
       if (event.code === "KeyB" || event.key.toLowerCase() === "b" || event.key === "ㅠ") {
         event.preventDefault();
-        setOpen((current) => !current);
+        setOpen(!open);
       }
       if (event.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", toggleRecipeBook, true);
     return () => window.removeEventListener("keydown", toggleRecipeBook, true);
-  }, []);
+  }, [open, setOpen]);
   return (
     <aside className={`recipe-book ${screen}`}>
       <button
@@ -77,7 +78,6 @@ export const RecipeBook = () => {
               <section className="blender-guide">
                 <strong>BLENDER</strong>
                 <span>맛 베이스를 선택하고, 우유와 얼음을 작업대에 준비한 뒤 블렌더를 사용하세요.</span>
-                <small>모카 · 바닐라 · 말차 · 초콜릿 베이스 + 우유 + 얼음</small>
               </section>
             ) : null}
             <div className="recipe-grid">

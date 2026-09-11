@@ -399,7 +399,7 @@ const Shift = () => {
   const selectedUid = useGame(({ selectedUid }) => selectedUid);
   const tick = useGame(({ tick }) => tick);
   const finish = useGame(({ finish }) => finish);
-  const exit = useGame(({ exit }) => exit);
+  const finishEarly = useGame(({ finishEarly }) => finishEarly);
   const select = useGame(({ select }) => select);
   const discard = useGame(({ discard }) => discard);
   const interactNearby = useGame(({ interactNearby }) => interactNearby);
@@ -410,6 +410,7 @@ const Shift = () => {
   const closeFridge = useGame(({ closeFridge }) => closeFridge);
   const takeFromFridge = useGame(({ takeFromFridge }) => takeFromFridge);
   const waterOpen = useGame(({ waterOpen }) => waterOpen);
+  const recipeBookOpen = useGame(({ recipeBookOpen }) => recipeBookOpen);
   const closeWater = useGame(({ closeWater }) => closeWater);
   const takeWater = useGame(({ takeWater }) => takeWater);
   const newDiscovery = useGame(({ newDiscovery }) => newDiscovery);
@@ -434,10 +435,10 @@ const Shift = () => {
     ? Math.round(((activeRuntime.total - activeRuntime.remaining) / activeRuntime.total) * 100)
     : 0;
   useEffect(() => {
-    if (menuIntroOpen) return;
+    if (menuIntroOpen || recipeBookOpen || fridgeOpen || waterOpen) return;
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [menuIntroOpen, tick]);
+  }, [fridgeOpen, menuIntroOpen, recipeBookOpen, tick, waterOpen]);
   useEffect(() => {
     soundPlayer.startMusic(shift.stageId);
   }, [shift.stageId]);
@@ -568,7 +569,7 @@ const Shift = () => {
           <small>영업 SCORE</small>
           <strong>{shift.score.toLocaleString("ko-KR")} P</strong>
         </div>
-        <button type="button" onClick={exit}>
+        <button type="button" onClick={finishEarly}>
           조기 마감
         </button>
       </header>

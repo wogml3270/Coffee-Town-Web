@@ -273,6 +273,7 @@ const CharacterController = () => {
   const orderSequence = useGame(({ shift }) => shift.orderSequence);
   const fridgeOpen = useGame(({ fridgeOpen }) => fridgeOpen);
   const waterOpen = useGame(({ waterOpen }) => waterOpen);
+  const recipeBookOpen = useGame(({ recipeBookOpen }) => recipeBookOpen);
   const movementLevel = useGame(({ upgrades }) => upgrades.movement);
   const multitaskLevel = useGame(({ upgrades }) => upgrades.multitask);
   const setNearbyStation = useGame(({ setNearbyStation }) => setNearbyStation);
@@ -309,7 +310,7 @@ const CharacterController = () => {
 
   useEffect(() => {
     const down = (event: KeyboardEvent) => {
-      if (fridgeOpen || waterOpen) return;
+      if (fridgeOpen || waterOpen || recipeBookOpen) return;
       const target = event.target as HTMLElement | null;
       if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
       keys.current.add(event.key.toLowerCase());
@@ -338,19 +339,20 @@ const CharacterController = () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, [combine, discard, fridgeOpen, interact, inventory, near, select, selectedUid, waterOpen]);
+  }, [combine, discard, fridgeOpen, interact, inventory, near, recipeBookOpen, select, selectedUid, waterOpen]);
   useEffect(() => {
-    if (fridgeOpen || waterOpen) {
+    if (fridgeOpen || waterOpen || recipeBookOpen) {
       keys.current.clear();
       destination.current = null;
     }
-  }, [fridgeOpen, waterOpen]);
+  }, [fridgeOpen, recipeBookOpen, waterOpen]);
   useEffect(() => {
     if (activeWork) destination.current = null;
   }, [activeWork]);
 
   useFrame(({ camera, clock }, delta) => {
-    const movementLocked = fridgeOpen || waterOpen || (Boolean(activeWork) && !fever && !multitaskLevel);
+    const movementLocked =
+      recipeBookOpen || fridgeOpen || waterOpen || (Boolean(activeWork) && !fever && !multitaskLevel);
     if (feverEffect.current) {
       feverEffect.current.rotation.y = clock.elapsedTime * 3.5;
       feverEffect.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 7) * 0.08);
@@ -451,7 +453,7 @@ const CharacterController = () => {
     const start = pointerStart.current;
     pointerStart.current = null;
     if (!start || Math.hypot(event.clientX - start.x, event.clientY - start.y) > 7) return;
-    if (!fridgeOpen && !waterOpen && (!activeWork || fever))
+    if (!recipeBookOpen && !fridgeOpen && !waterOpen && (!activeWork || fever))
       destination.current = clampDestination(event.point.clone());
   };
 
