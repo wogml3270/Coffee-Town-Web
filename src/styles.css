@@ -121,6 +121,9 @@ button {
 .mobile-automation-toggle {
   display: none;
 }
+.mobile-topbar {
+  display: none;
+}
 .hud > div {
   min-width: 0;
   padding: 9px 12px;

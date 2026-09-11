@@ -1187,6 +1187,81 @@
   }
 }
 @media (max-width: 700px) {
+  .mobile-topbar {
+    position: absolute;
+    z-index: 140;
+    top: max(8px, env(safe-area-inset-top));
+    right: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 0 4px 0 12px;
+    border: 1px solid #e2c38d;
+    border-radius: 13px;
+    background: #2c211de8;
+    box-shadow: 0 8px 20px #0005;
+    color: #f8e8c8;
+  }
+  .mobile-topbar strong {
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+  .mobile-menu-button {
+    display: grid;
+    width: 36px;
+    height: 34px;
+    place-items: center;
+    border: 1px solid #e2c38d;
+    border-radius: 9px;
+    background: #6d523c;
+    color: #fff2d3;
+    font-size: 20px;
+    line-height: 1;
+  }
+  .mobile-menu-panel {
+    position: absolute;
+    top: 46px;
+    right: 0;
+    display: grid;
+    width: min(220px, calc(100vw - 20px));
+    gap: 7px;
+    padding: 12px;
+    border: 1px solid #e2c38d;
+    border-radius: 14px;
+    background: #2c211df5;
+    box-shadow: 0 14px 30px #0007;
+  }
+  .mobile-menu-panel p {
+    margin: 0 0 2px;
+    color: #e8c98e;
+    font-size: 10px;
+    font-weight: 900;
+  }
+  .mobile-menu-panel button {
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid #88725a;
+    border-radius: 9px;
+    background: #4a3b31;
+    color: #f6e7ca;
+    font-size: 11px;
+    font-weight: 900;
+  }
+  .mobile-menu-panel button.active {
+    border-color: #e4bd68;
+    background: #8b6b32;
+  }
+  .mobile-menu-panel .mobile-menu-close {
+    border-color: #e7a47f;
+    background: #70483b;
+  }
+  .hud > button:not(.mobile-automation-toggle),
+  .mobile-automation-toggle,
+  .automation-controls {
+    display: none;
+  }
   .automation-controls {
     top: 190px;
     right: 10px;
@@ -1230,11 +1305,41 @@
   }
   .inventory .inventory-select {
     min-height: 78px;
-    padding: 4px 2px;
+    padding: 3px 2px 28px;
+    overflow: hidden;
   }
   .inventory .inventory-select .item-image {
-    width: 48px;
-    height: 48px;
+    width: 42px;
+    height: 42px;
+  }
+  .inventory .inventory-select .inventory-item-name {
+    position: absolute;
+    right: 2px;
+    bottom: 16px;
+    left: 2px;
+    display: block;
+    max-width: calc(100% - 4px);
+    padding: 0;
+    overflow: hidden;
+    color: #fff8ea;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .inventory .inventory-select small {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    left: 3px;
+    display: block;
+    max-width: 100%;
+    padding: 2px 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .inventory[data-count="1"] .inventory-item,
   .inventory[data-count="2"] .inventory-item,
@@ -1261,16 +1366,17 @@
   .mobile-controls {
     position: absolute;
     z-index: 12;
-    right: 62px;
+    right: 10px;
     bottom: 166px;
-    left: auto;
+    left: 10px;
     display: flex;
     gap: 6px;
   }
   .mobile-action,
   .mobile-combine {
     display: block;
-    width: 76px;
+    width: auto;
+    flex: 1 1 0;
     height: 50px;
     border: 2px solid #ffe2a6;
     border-radius: 16px;
@@ -2108,7 +2214,7 @@
   .recipe-book {
     top: auto;
     right: 10px;
-    bottom: 166px;
+    bottom: 224px;
   }
   .recipe-book.title {
     top: max(12px, env(safe-area-inset-top));
@@ -2265,6 +2371,7 @@
 }
 @media (max-width: 700px) {
   .hud {
+    top: 62px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
     padding-bottom: 0;
@@ -2280,19 +2387,7 @@
     min-height: 36px;
   }
   .mobile-automation-toggle {
-    display: block;
-    grid-column: 1 / -1;
-    min-height: 32px;
-    padding: 0 10px;
-    border-color: #d7b469;
-    color: #ffe9b8;
-  }
-  .automation-controls {
     display: none;
-    top: 224px;
-  }
-  .automation-controls.open {
-    display: flex;
   }
   .hud .order {
     padding-left: 48px;

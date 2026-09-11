@@ -559,6 +559,46 @@ const Shift = () => {
           </div>
         </section>
       ) : null}
+      <header className="mobile-topbar">
+        <strong>COFFEE TOWN</strong>
+        <button
+          className="mobile-menu-button"
+          type="button"
+          aria-label="모바일 메뉴"
+          aria-expanded={automationMenuOpen}
+          onClick={() => setAutomationMenuOpen((open) => !open)}
+        >
+          <span aria-hidden="true">☰</span>
+        </button>
+        {automationMenuOpen ? (
+          <div className="mobile-menu-panel" role="menu">
+            <p>카페 메뉴</p>
+            {automationLevel > 0 ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={automationEnabled ? "active" : ""}
+                onClick={() => setAutomationEnabled(!automationEnabled)}
+              >
+                자동 조합 {automationEnabled ? "ON" : "OFF"}
+              </button>
+            ) : null}
+            {autoServeLevel > 0 ? (
+              <button
+                type="button"
+                role="menuitem"
+                className={autoServeEnabled ? "active" : ""}
+                onClick={() => setAutoServeEnabled(!autoServeEnabled)}
+              >
+                자동 서빙 {autoServeEnabled ? "ON" : "OFF"}
+              </button>
+            ) : null}
+            <button className="mobile-menu-close" type="button" role="menuitem" onClick={() => setEarlyCloseOpen(true)}>
+              조기 마감
+            </button>
+          </div>
+        ) : null}
+      </header>
       <header className="hud">
         <div>
           <small>BUSINESS TIME</small>
@@ -659,8 +699,8 @@ const Shift = () => {
                 <button className="inventory-select" onClick={() => select(item.uid)} type="button">
                   <b>{index + 1}</b>
                   <ItemImage itemId={item.itemId} />
-                  <span>{labels[item.itemId]}</span>
-                  <small>{recipeTierMeta[tier].name}</small>
+                  <strong className="inventory-item-name">{labels[item.itemId]}</strong>
+                  <small>{labels[item.itemId]} · {recipeTierMeta[tier].name}</small>
                 </button>
                 <button
                   className="inventory-remove"
