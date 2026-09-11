@@ -41,6 +41,8 @@ export type ShiftState = Readonly<{
   activeWork: StationId | null;
   notice: string;
   upgrades: Upgrades;
+  automationEnabled: boolean;
+  autoServeEnabled: boolean;
   stageId: number;
   rewardMultiplier: number;
   seed: number;
@@ -174,6 +176,8 @@ export const createShift = (
     activeWork: null,
     notice: "09:00 · 오늘의 영업을 시작합니다",
     upgrades,
+    automationEnabled: upgrades.automation > 0,
+    autoServeEnabled: upgrades.autoServe > 0,
     stageId: stage.id,
     rewardMultiplier: stage.rewardMultiplier,
     seed,
@@ -377,11 +381,11 @@ export const autoCombine = (
   recipeBook: readonly CombinationRecipe[] = recipes,
 ): ShiftState => {
   const serveReadyOrder = (current: ShiftState) => {
-    if (!current.upgrades.autoServe) return current;
+    if (current.autoServeEnabled === false || !current.upgrades.autoServe) return current;
     const completed = current.inventory.find(({ itemId }) => itemId === current.order.itemId);
     return completed ? serve(current, completed.uid) : current;
   };
-  if (!state.upgrades.automation) return serveReadyOrder(state);
+  if (state.automationEnabled === false || !state.upgrades.automation) return serveReadyOrder(state);
   const candidates = recipeBook.filter(({ inputs }) =>
     inputs.every((input, index) =>
       state.inventory.some(

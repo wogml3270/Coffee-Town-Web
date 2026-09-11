@@ -141,7 +141,7 @@ export const Upgrade = () => {
         <header className="upgrade-header">
           <div>
             <p>CAFE WORKSHOP</p>
-            <h1>카페 성장 트리</h1>
+            <h1>카페 업그레이드</h1>
           </div>
           <strong className="bank">{bankGold.toLocaleString()} G</strong>
           <div className="upgrade-actions">

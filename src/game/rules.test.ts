@@ -206,6 +206,7 @@ describe("timed cafe production", () => {
       ...createShift(undefined, 2),
       order: { id: 0, itemId: vanillaOrder.id, name: vanillaOrder.name, reward: vanillaOrder.reward },
       upgrades: { ...createShift().upgrades, automation: 1 },
+      automationEnabled: true,
       inventory: [
         { uid: "espresso-cup", itemId: "espresso_cup" },
         { uid: "vanilla", itemId: "vanilla_syrup" },
@@ -303,7 +304,11 @@ describe("timed cafe production", () => {
   });
 
   it("automatically combines a valid recipe after the premium upgrade", () => {
-    const upgraded = { ...createShift(), upgrades: { ...createShift().upgrades, automation: 1 } };
+    const upgraded = {
+      ...createShift(),
+      upgrades: { ...createShift().upgrades, automation: 1 },
+      automationEnabled: true,
+    };
     let state = run(upgraded, "cups");
     state = run(state, "grinder");
     state = run(state, "espresso", item(state, "ground_coffee").uid);
@@ -354,6 +359,7 @@ describe("timed cafe production", () => {
     const served = autoCombine({
       ...state,
       upgrades: { ...state.upgrades, autoServe: 1 },
+      autoServeEnabled: true,
       inventory: [{ uid: "ready", itemId: state.order.itemId }],
     });
     expect(served.orderSequence).toBe(1);

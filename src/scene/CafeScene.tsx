@@ -129,7 +129,10 @@ const GlbModel = ({ url, scale = 1 }: Readonly<{ url: string; scale?: number }>)
   return <Clone object={gltf.scene} scale={scale} castShadow receiveShadow />;
 };
 const CustomerModel = ({ variant }: Readonly<{ variant: number }>) => (
-  <GlbModel url={`/assets/models/customer-${String((variant % 6) + 1).padStart(2, "0")}.glb`} scale={0.72} />
+  <GlbModel
+    url={`/assets/models/customer-cute-${String((variant % 6) + 1).padStart(2, "0")}.glb`}
+    scale={0.72}
+  />
 );
 
 const Station = ({ placement, near }: Readonly<{ placement: StationPlacement; near: boolean }>) => {
@@ -469,7 +472,7 @@ const CharacterController = () => {
         <meshBasicMaterial transparent opacity={0} depthWrite={false} />
       </mesh>
       <group ref={root} position={[0, 0, 0.45]}>
-        <GlbModel url="/assets/models/jieun.glb" scale={0.82} />
+        <GlbModel url="/assets/models/jieun-cute.glb" scale={0.82} />
         {speech ? (
           <Html center position={[0, 2.15, 0]} zIndexRange={[5, 0]} className="character-speech">
             {speech}
@@ -515,7 +518,7 @@ const ServedCustomer = ({
   onDone,
 }: Readonly<{ guest: ServedGuest; stageId: number; onDone: (id: number) => void }>) => {
   const root = useRef<THREE.Group>(null);
-  const phase = useRef<"toSeat" | "drink" | "exit">("toSeat");
+  const phase = useRef<"toSeat" | "place" | "drink" | "exit">("toSeat");
   const position = useRef(new THREE.Vector3(4.65, 0, 4.82));
   const phaseStarted = useRef(0);
   const waypoint = useRef(0);
@@ -545,9 +548,15 @@ const ServedCustomer = ({
       const target = route[waypoint.current];
       if (target && moveTo(target[0], target[1], 1.65)) waypoint.current += 1;
       if (waypoint.current >= route.length) {
-        phase.current = "drink";
+        phase.current = "place";
         phaseStarted.current = clock.elapsedTime;
         setShowSpeech(false);
+      }
+    } else if (phase.current === "place") {
+      root.current.rotation.y = farSide ? Math.PI : 0;
+      if (clock.elapsedTime - phaseStarted.current > 0.9) {
+        phase.current = "drink";
+        phaseStarted.current = clock.elapsedTime;
       }
     } else if (phase.current === "drink") {
       root.current.rotation.y = farSide ? Math.PI : 0;
@@ -567,7 +576,7 @@ const ServedCustomer = ({
         onDone(guest.id);
       }
     }
-    const seated = phase.current === "drink";
+    const seated = phase.current === "place" || phase.current === "drink";
     root.current.position.set(
       position.current.x,
       seated ? -0.35 : Math.abs(Math.sin(clock.elapsedTime * 5)) * 0.035,
@@ -575,7 +584,9 @@ const ServedCustomer = ({
     );
     if (cup.current) {
       cup.current.visible = seated;
-      cup.current.position.y = 1.25 + Math.sin(clock.elapsedTime * 5) * 0.08;
+      const placing = phase.current === "place";
+      const placeProgress = placing ? Math.min(1, (clock.elapsedTime - phaseStarted.current) / 0.9) : 1;
+      cup.current.position.y = 1.25 - placeProgress * 0.32 + (placing ? 0 : Math.sin(clock.elapsedTime * 5) * 0.08);
       cup.current.rotation.z = seated ? -0.25 + Math.sin(clock.elapsedTime * 3) * 0.12 : 0;
     }
   });
@@ -708,10 +719,9 @@ stations.forEach(({ model }) => {
 });
 // Stage shells load only when that stage is mounted. Shared equipment is prefetched
 // after the lazy scene module is requested, never on the initial title screen.
-useGLTF.preload("/assets/models/jieun.glb");
-useGLTF.preload("/assets/models/customer.glb");
+useGLTF.preload("/assets/models/jieun-cute.glb");
 Array.from({ length: 6 }, (_, index) =>
-  useGLTF.preload(`/assets/models/customer-${String(index + 1).padStart(2, "0")}.glb`),
+  useGLTF.preload(`/assets/models/customer-cute-${String(index + 1).padStart(2, "0")}.glb`),
 );
 useGLTF.preload("/assets/models/dining-set.glb");
 useGLTF.preload("/assets/models/cafe-door.glb");

@@ -406,6 +406,12 @@ const Shift = () => {
   const nearbyStation = useGame(({ nearbyStation }) => nearbyStation);
   const combine = useGame(({ combine }) => combine);
   const bankGold = useGame(({ bankGold }) => bankGold);
+  const automationEnabled = useGame(({ shift }) => shift.automationEnabled);
+  const autoServeEnabled = useGame(({ shift }) => shift.autoServeEnabled);
+  const automationLevel = useGame(({ upgrades }) => upgrades.automation);
+  const autoServeLevel = useGame(({ upgrades }) => upgrades.autoServe);
+  const setAutomationEnabled = useGame(({ setAutomationEnabled }) => setAutomationEnabled);
+  const setAutoServeEnabled = useGame(({ setAutoServeEnabled }) => setAutoServeEnabled);
   const fridgeOpen = useGame(({ fridgeOpen }) => fridgeOpen);
   const closeFridge = useGame(({ closeFridge }) => closeFridge);
   const takeFromFridge = useGame(({ takeFromFridge }) => takeFromFridge);
@@ -573,6 +579,31 @@ const Shift = () => {
           조기 마감
         </button>
       </header>
+      {automationLevel > 0 || autoServeLevel > 0 ? (
+        <aside className="automation-controls" aria-label="자동화 설정">
+          <small>자동화</small>
+          {automationLevel > 0 ? (
+            <button
+              type="button"
+              className={automationEnabled ? "active" : ""}
+              aria-pressed={automationEnabled}
+              onClick={() => setAutomationEnabled(!automationEnabled)}
+            >
+              자동 조합 {automationEnabled ? "ON" : "OFF"}
+            </button>
+          ) : null}
+          {autoServeLevel > 0 ? (
+            <button
+              type="button"
+              className={autoServeEnabled ? "active" : ""}
+              aria-pressed={autoServeEnabled}
+              onClick={() => setAutoServeEnabled(!autoServeEnabled)}
+            >
+              자동 서빙 {autoServeEnabled ? "ON" : "OFF"}
+            </button>
+          ) : null}
+        </aside>
+      ) : null}
       {shift.activeWork && activeRuntime?.phase === "processing" ? (
         <section className="work-progress" aria-label="현재 설비 작업 진행도">
           <div>

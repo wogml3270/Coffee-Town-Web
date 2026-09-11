@@ -593,6 +593,42 @@
   box-shadow: 0 12px 28px #0008;
   color: #f6e7ca;
 }
+.automation-controls {
+  position: absolute;
+  z-index: 8;
+  top: 116px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border: 1px solid #e2c38d;
+  border-radius: 12px;
+  background: #2c211dcc;
+  color: #f6e7ca;
+  box-shadow: 0 8px 20px #0005;
+  backdrop-filter: blur(8px);
+}
+.automation-controls small {
+  margin-right: 2px;
+  color: #e8c98e;
+  font-size: 9px;
+  font-weight: 900;
+}
+.automation-controls button {
+  padding: 5px 7px;
+  border: 1px solid #88725a;
+  border-radius: 8px;
+  background: #4a3b31;
+  color: #c9ba9d;
+  font-size: 9px;
+  font-weight: 900;
+}
+.automation-controls button.active {
+  border-color: #e4bd68;
+  background: #8b6b32;
+  color: #fff5d7;
+}
 .inventory > small {
   display: grid;
   min-width: 52px;
@@ -1151,6 +1187,13 @@
   }
 }
 @media (max-width: 700px) {
+  .automation-controls {
+    top: 98px;
+    right: 8px;
+    max-width: calc(100vw - 16px);
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
   .lobby-card {
     margin: 0 12px;
   }

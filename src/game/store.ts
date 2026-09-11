@@ -83,6 +83,8 @@ type GameStore = Readonly<{
   interact: (station: StationId) => void;
   interactNearby: () => void;
   combine: () => void;
+  setAutomationEnabled: (enabled: boolean) => void;
+  setAutoServeEnabled: (enabled: boolean) => void;
   setNearbyStation: (station: StationId | null) => void;
   closeFridge: () => void;
   closeWater: () => void;
@@ -331,6 +333,10 @@ export const useGame = create<GameStore>()(
         if (station) get().interact(station);
       },
       combine: () => get().act("combine"),
+      setAutomationEnabled: (automationEnabled) =>
+        set(({ shift }) => ({ shift: { ...shift, automationEnabled } })),
+      setAutoServeEnabled: (autoServeEnabled) =>
+        set(({ shift }) => ({ shift: { ...shift, autoServeEnabled } })),
       setNearbyStation: (nearbyStation) => set({ nearbyStation }),
       closeFridge: () => set({ fridgeOpen: false }),
       closeWater: () => set({ waterOpen: false }),
