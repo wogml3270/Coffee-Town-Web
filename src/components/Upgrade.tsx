@@ -149,7 +149,7 @@ export const Upgrade = () => {
               영업 시작
             </button>
             <button className="secondary" type="button" onClick={exit}>
-              타이틀
+              홈으로
             </button>
           </div>
         </header>
