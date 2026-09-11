@@ -1188,11 +1188,13 @@
 }
 @media (max-width: 700px) {
   .automation-controls {
-    top: 98px;
-    right: 58px;
-    max-width: calc(100vw - 66px);
+    top: 190px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: center;
+    min-height: 38px;
   }
   .lobby-card {
     margin: 0 12px;
@@ -1203,8 +1205,8 @@
   }
   .inventory {
     bottom: 142px;
-    height: 58px;
-    min-height: 58px;
+    height: 92px;
+    min-height: 92px;
     align-items: stretch;
     padding: 5px;
     overflow-x: auto;
@@ -1212,8 +1214,8 @@
     max-width: calc(100vw - 16px);
   }
   .inventory-item {
-    min-width: 68px;
-    flex: 0 0 68px;
+    min-width: 76px;
+    flex: 0 0 76px;
   }
   .inventory > small {
     min-width: 38px;
@@ -1227,18 +1229,18 @@
     font-size: 10px;
   }
   .inventory .inventory-select {
-    min-height: 46px;
-    padding: 2px;
+    min-height: 78px;
+    padding: 4px 2px;
   }
   .inventory .inventory-select .item-image {
-    width: 30px;
-    height: 30px;
+    width: 48px;
+    height: 48px;
   }
   .inventory[data-count="1"] .inventory-item,
   .inventory[data-count="2"] .inventory-item,
   .inventory[data-count="3"] .inventory-item {
-    flex: 0 1 92px;
-    max-width: 108px;
+    flex: 0 0 112px;
+    max-width: 112px;
   }
   .character-buttons {
     grid-template-columns: 1fr;
@@ -1259,17 +1261,16 @@
   .mobile-controls {
     position: absolute;
     z-index: 12;
-    right: 10px;
+    right: 62px;
     bottom: max(10px, env(safe-area-inset-bottom));
-    left: 10px;
+    left: auto;
     display: flex;
-    justify-content: flex-end;
     gap: 6px;
   }
   .mobile-action,
   .mobile-combine {
     display: block;
-    width: 82px;
+    width: 76px;
     height: 50px;
     border: 2px solid #ffe2a6;
     border-radius: 16px;
@@ -2087,8 +2088,8 @@
 @media (max-width: 700px) {
   .recipe-book {
     top: auto;
-    right: 12px;
-    bottom: 214px;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom));
   }
   .recipe-book.title {
     top: max(12px, env(safe-area-inset-top));
@@ -2244,6 +2245,32 @@
   padding: 8px 12px;
 }
 @media (max-width: 700px) {
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding-bottom: 0;
+  }
+  .hud > div {
+    min-height: 62px;
+    padding: 8px 10px;
+  }
+  .hud button {
+    position: static;
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 36px;
+  }
+  .hud .order {
+    padding-left: 48px;
+  }
+  .hud .order .item-image {
+    width: 42px;
+    height: 42px;
+  }
+  .work-progress {
+    top: 238px;
+    width: calc(100vw - 20px);
+  }
   .inventory-select .item-image {
     width: 40px;
     height: 40px;

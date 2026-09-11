@@ -648,7 +648,7 @@ const Shift = () => {
                   <b>{index + 1}</b>
                   <ItemImage itemId={item.itemId} />
                   <span>{labels[item.itemId]}</span>
-                  <small>{tier}단계</small>
+                  <small>{recipeTierMeta[tier].name}</small>
                 </button>
                 <button
                   className="inventory-remove"
@@ -697,7 +697,7 @@ const Shift = () => {
                     <ItemImage itemId={itemId} />
                     <b>{labels[itemId]}</b>
                     <small>
-                      {shift.stageId < minStage ? `STAGE ${minStage} 해금` : `${tier}단계 · 즉시 꺼내기`}
+                      {shift.stageId < minStage ? `STAGE ${minStage} 해금` : `${recipeTierMeta[tier].name} · 즉시 꺼내기`}
                     </small>
                   </button>
                 );
