@@ -113,11 +113,20 @@ export const getCurrentProfile = async (): Promise<PlayerProfile | null> => {
   return syncProfile(data.session.user);
 };
 
-export const subscribeToAuth = (listener: (profile: PlayerProfile | null) => void) => {
-  const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+export const subscribeToAuth = (listener: (profile: PlayerProfile | null) => void, onError: () => void) => {
+  let active = true;
+  let generation = 0;
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    // A token refresh must not rehydrate (and overwrite) an in-progress game.
+    if (event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") return;
+    const current = ++generation;
     window.setTimeout(() => {
-      void (session ? syncProfile(session.user).then(listener) : Promise.resolve(listener(null)));
+      if (!active || current !== generation) return;
+      if (!session) { listener(null); return; }
+      void syncProfile(session.user).then((profile) => {
+        if (active && current === generation) listener(profile);
+      }).catch(() => { if (active && current === generation) onError(); });
     }, 0);
   });
-  return () => data.subscription.unsubscribe();
+  return () => { active = false; generation++; data.subscription.unsubscribe(); };
 };

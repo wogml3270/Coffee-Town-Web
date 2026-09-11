@@ -1,41 +1,31 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties } from "react";
 import { soundPlayer } from "./audio/soundPlayer";
 import {
   fridgeIngredients,
   labels,
   menuCatalog,
-  recipeArchive,
   recipeTierMeta,
   recipeTierOf,
   stages,
-  type RecipeTier,
 } from "./game/catalog";
-import { businessClock, calculateShiftScore } from "./game/rules";
+import { businessClock } from "./game/rules";
 import { useGame } from "./game/store";
-import {
-  canBuyUpgrade,
-  unmetUpgradeRequirements,
-  upgradeCategories,
-  upgradeNodeById,
-  upgradeNodes,
-  type UpgradeId,
-} from "./game/upgradeTree";
-import { CafeScene } from "./scene/CafeScene";
+import { ItemImage } from "./components/ItemImage";
+import { RecipeBook } from "./components/RecipeBook";
+import { Result } from "./components/Result";
+import { Upgrade } from "./components/Upgrade";
+import { useAccountProgress } from "./hooks/useAccountProgress";
+import { loadCombinationRecipes } from "./services/recipeService";
+const CafeScene = lazy(() => import("./scene/CafeScene").then((module) => ({ default: module.CafeScene })));
 import {
   completeOAuthCallback,
-  getCurrentProfile,
   saveNickname,
   signInWithGoogle,
   signInWithKakao,
   signOut,
-  subscribeToAuth,
   type PlayerProfile,
 } from "./services/authService";
-import { loadProgress, saveProgress } from "./services/progressService";
-import { loadCombinationRecipes } from "./services/recipeService";
-import { loadUpgradeCatalog, purchaseUpgrade } from "./services/upgradeService";
 import { loadLeaderboard, type RankingEntry } from "./services/rankingService";
-import { saveShiftScore } from "./services/scoreService";
 
 const stationNames = {
   grinder: "그라인더",
@@ -51,85 +41,6 @@ const stationNames = {
   blender: "블렌더",
   serve: "픽업 카운터",
 } as const;
-
-const UpgradeIcon = ({ id }: Readonly<{ id: UpgradeId }>) => {
-  const paths: Record<UpgradeId, ReactNode> = {
-    speed: (
-      <>
-        <path d="M7 17h18v9H7zM10 8h12l3 9H7z" />
-        <path d="M12 12h8M16 8V5" />
-      </>
-    ),
-    espressoSpeed: (
-      <>
-        <path d="M8 9h13v12a5 5 0 0 1-5 5h-3a5 5 0 0 1-5-5z" />
-        <path d="M21 12h2a4 4 0 0 1 0 8h-2M12 5v3m5-3v3" />
-      </>
-    ),
-    coldDrinkSpeed: (
-      <>
-        <path d="M10 6h12l-2 21h-8zM11 11h10" />
-        <path d="m14 15 4 4m0-4-4 4" />
-      </>
-    ),
-    movement: (
-      <>
-        <circle cx="17" cy="6" r="3" />
-        <path d="m15 11-4 7 6 3 3-7 5 4M17 21l-5 6m6-6 5 6" />
-      </>
-    ),
-    multitask: (
-      <>
-        <circle cx="16" cy="6" r="3" />
-        <path d="M16 10v9m0-5-7 4m7-4 7 4m-7 1-5 8m5-8 5 8" />
-        <path d="M5 12h5v5H5zm17 0h5v5h-5z" />
-      </>
-    ),
-    feverCharge: <path d="M18 3 8 18h7l-1 11 10-16h-7z" />,
-    feverDuration: (
-      <>
-        <circle cx="16" cy="17" r="11" />
-        <path d="M16 10v7l5 3M12 3h8" />
-      </>
-    ),
-    feverProfit: (
-      <>
-        <path d="M7 11h18v15H7zM10 11V7h12v4" />
-        <circle cx="16" cy="18" r="4" />
-        <path d="M16 16v4" />
-      </>
-    ),
-    tips: (
-      <>
-        <path d="M5 17h22v9H5zM9 17v-3c0-7 14-7 14 0v3" />
-        <path d="M13 10h6M3 26h26" />
-      </>
-    ),
-    comboGuard: (
-      <>
-        <path d="m16 4 10 4v7c0 7-4 11-10 14C10 26 6 22 6 15V8z" />
-        <path d="m11 16 3 3 7-7" />
-      </>
-    ),
-    automation: (
-      <>
-        <rect x="5" y="8" width="22" height="17" rx="3" />
-        <path d="M11 13h10M11 18h4m5 0h1M10 25v3m12-3v3M16 4v4" />
-      </>
-    ),
-    autoServe: (
-      <>
-        <path d="M5 20h22v6H5zM8 20v-3a8 8 0 0 1 16 0v3M16 9V6" />
-        <path d="m12 15 3 3 6-6" />
-      </>
-    ),
-  };
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      {paths[id]}
-    </svg>
-  );
-};
 
 const NicknameModal = ({
   profile,
@@ -321,112 +232,6 @@ const LeaderboardModal = ({ close }: Readonly<{ close: () => void }>) => {
         </div>
       </div>
     </section>
-  );
-};
-
-const RecipeBook = () => {
-  const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<RecipeTier>(1);
-  const screen = useGame(({ screen }) => screen);
-  const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
-  const discovered = useGame(({ discoveredRecipes }) => discoveredRecipes);
-  const visibleRecipes = recipeArchive.filter(({ tier }) => tier === tab);
-  const discoverableRecipes = recipeArchive;
-  useEffect(() => {
-    const toggleRecipeBook = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
-      if (event.code === "KeyB" || event.key.toLowerCase() === "b" || event.key === "ㅠ") {
-        event.preventDefault();
-        setOpen((current) => !current);
-      }
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", toggleRecipeBook, true);
-    return () => window.removeEventListener("keydown", toggleRecipeBook, true);
-  }, []);
-  return (
-    <aside className={`recipe-book ${screen}`}>
-      <button
-        className="recipe-book-button"
-        type="button"
-        aria-label="레시피 도감 열기"
-        onClick={() => setOpen(true)}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H4V4Zm16 0h-4a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h4V4Z" />
-        </svg>
-        <kbd>B</kbd>
-      </button>
-      {open ? (
-        <section className="recipe-book-modal" role="dialog" aria-label="레시피 도감">
-          <div>
-            <header>
-              <div>
-                <p>COFFEE TOWN ARCHIVE</p>
-                <h2>레시피 도감</h2>
-                <span>
-                  {discoverableRecipes.filter(({ id }) => discovered.includes(id)).length}/
-                  {discoverableRecipes.length} 발견
-                </span>
-              </div>
-              <button type="button" onClick={() => setOpen(false)}>
-                ×
-              </button>
-            </header>
-            <nav className="recipe-tabs recipe-tier-tabs" aria-label="제조 단계">
-              {(Object.entries(recipeTierMeta) as [string, (typeof recipeTierMeta)[RecipeTier]][]).map(
-                ([tier, meta]) => {
-                  const tierNumber = Number(tier) as RecipeTier;
-                  return (
-                    <button
-                      className={tab === tierNumber ? "active" : ""}
-                      type="button"
-                      key={tier}
-                      style={{ "--tier-color": meta.color } as CSSProperties}
-                      onClick={() => setTab(tierNumber)}
-                    >
-                      <b>{tier}단계</b>
-                      <small>{meta.name}</small>
-                    </button>
-                  );
-                },
-              )}
-            </nav>
-            {tab === 5 ? (
-              <section className="blender-guide">
-                <strong>BLENDER</strong>
-                <span>맛 베이스를 선택하고, 우유와 얼음을 작업대에 준비한 뒤 블렌더를 사용하세요.</span>
-                <small>모카 · 바닐라 · 말차 · 초콜릿 베이스 + 우유 + 얼음</small>
-              </section>
-            ) : null}
-            <div className="recipe-grid">
-              {visibleRecipes.map((menu) => {
-                const found = discovered.includes(menu.id);
-                const available = menu.stage <= unlockedStage;
-                return (
-                  <article
-                    key={menu.id}
-                    className={found ? "found" : available ? "available" : "locked"}
-                    style={{ "--tier-color": recipeTierMeta[menu.tier].color } as CSSProperties}
-                  >
-                    <i>{found ? "✓" : "?"}</i>
-                    <small>
-                      {menu.tier}단계 · {recipeTierMeta[menu.tier].name}
-                    </small>
-                    <h3>{found ? menu.name : available ? menu.name : "???"}</h3>
-                    <p>{found ? menu.recipe : "조합에 성공하면 제조법이 공개됩니다"}</p>
-                    {found && menu.price ? (
-                      <strong className="recipe-price">판매가 {menu.price.toLocaleString("ko-KR")}원</strong>
-                    ) : null}
-                  </article>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
-    </aside>
   );
 };
 
@@ -702,11 +507,12 @@ const Shift = () => {
   }, [closeFridge, fridgeOpen, shift.stageId, takeFromFridge]);
   return (
     <main className={`game-screen ${shift.fever ? "fever" : ""}`}>
-      <CafeScene />
+      <Suspense fallback={<div className="scene-loading" role="status">카페를 준비하고 있습니다…</div>}><CafeScene /></Suspense>
       {newDiscovery ? (
         <section className="recipe-discovery" role="status" aria-live="polite">
           <div className="discovery-rays" />
           <small>NEW RECIPE DISCOVERED</small>
+          <ItemImage itemId={newDiscovery} />
           <strong>{labels[newDiscovery]}</strong>
           <span>레시피 도감에 새 제조법이 등록되었습니다!</span>
           <div className="discovery-sparkles" aria-hidden="true">
@@ -724,6 +530,7 @@ const Shift = () => {
             <div>
               {newlyAvailableMenus.map((menu) => (
                 <article key={menu.id}>
+                  <ItemImage itemId={menu.id} />
                   <small>NEW MENU</small>
                   <strong>{menu.name}</strong>
                   <span>조합에 성공하면 레시피 도감에 제조법이 기록됩니다.</span>
@@ -749,6 +556,7 @@ const Shift = () => {
         </div>
         <div className="order" key={shift.order.id}>
           <small>ORDER {String(shift.orderSequence + 1).padStart(2, "0")}</small>
+          <ItemImage itemId={shift.order.itemId} />
           <strong>{shift.order.name}</strong>
         </div>
         <div className="gold-card">
@@ -805,6 +613,7 @@ const Shift = () => {
               >
                 <button className="inventory-select" onClick={() => select(item.uid)} type="button">
                   <b>{index + 1}</b>
+                  <ItemImage itemId={item.itemId} />
                   <span>{labels[item.itemId]}</span>
                   <small>{tier}단계</small>
                 </button>
@@ -852,6 +661,7 @@ const Shift = () => {
                     onClick={() => takeFromFridge(itemId)}
                   >
                     <i>{index === 9 ? 0 : index + 1}</i>
+                    <ItemImage itemId={itemId} />
                     <b>{labels[itemId]}</b>
                     <small>
                       {shift.stageId < minStage ? `STAGE ${minStage} 해금` : `${tier}단계 · 즉시 꺼내기`}
@@ -875,12 +685,12 @@ const Shift = () => {
             <div className="fridge-grid water-grid">
               <button type="button" onClick={() => takeWater("hot_water")}>
                 <i>1</i>
-                <b>온수</b>
+                <ItemImage itemId="hot_water" /><b>온수</b>
                 <small>뜨거운 음료용</small>
               </button>
               <button type="button" onClick={() => takeWater("cold_water")}>
                 <i>2</i>
-                <b>냉수</b>
+                <ItemImage itemId="cold_water" /><b>냉수</b>
                 <small>차가운 음료용</small>
               </button>
             </div>
@@ -916,311 +726,18 @@ const Shift = () => {
   );
 };
 
-const Result = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
-  const shift = useGame(({ shift }) => shift);
-  const exit = useGame(({ exit }) => exit);
-  const start = useGame(({ start }) => start);
-  const openUpgrade = useGame(({ openUpgrade }) => openUpgrade);
-  const bankGold = useGame(({ bankGold }) => bankGold);
-  const breakdown = calculateShiftScore(shift);
-  const submitted = useRef(false);
-  const [scoreStatus, setScoreStatus] = useState(profile ? "랭킹 기록 저장 중" : "게스트 기록");
-  useEffect(() => {
-    soundPlayer.startLobbyMusic();
-  }, []);
-  useEffect(() => {
-    if (!profile || submitted.current) return;
-    submitted.current = true;
-    void saveShiftScore(shift, breakdown)
-      .then(({ isPersonalBest }) =>
-        setScoreStatus(isPersonalBest ? "개인 최고 기록 갱신!" : "랭킹 기록 저장 완료"),
-      )
-      .catch(() => setScoreStatus("점수 저장 실패 · 로그인 상태를 확인하세요"));
-  }, [breakdown, profile, shift]);
-  return (
-    <main className="result-screen">
-      <section>
-        <p>STAGE {shift.stageId} · 21:00 CLOSED</p>
-        <h1>오늘도 수고했어요</h1>
-        <div>
-          <strong>+{shift.gold} G</strong>
-          <span>
-            {shift.orderSequence}잔 완료 · 보유 골드 {bankGold} G
-          </span>
-        </div>
-        <div className="result-score">
-          <small>{scoreStatus}</small>
-          <strong>{breakdown.total.toLocaleString("ko-KR")} P</strong>
-          <dl>
-            <div>
-              <dt>주문 처리</dt>
-              <dd>{breakdown.orderPoints.toLocaleString("ko-KR")}</dd>
-            </div>
-            <div>
-              <dt>정확도 {breakdown.accuracy}%</dt>
-              <dd>+{breakdown.accuracyBonus}</dd>
-            </div>
-            <div>
-              <dt>최대 콤보 {shift.maxCombo}</dt>
-              <dd>+{breakdown.comboBonus}</dd>
-            </div>
-            <div>
-              <dt>만족도 {breakdown.averageSatisfaction}</dt>
-              <dd>+{breakdown.satisfactionBonus}</dd>
-            </div>
-            <div>
-              <dt>정상 마감</dt>
-              <dd>+{breakdown.closingBonus}</dd>
-            </div>
-          </dl>
-        </div>
-        <button type="button" onClick={openUpgrade}>
-          카페 업그레이드
-        </button>
-        <button type="button" onClick={() => start()}>
-          다시 영업하기
-        </button>
-        <button className="secondary" type="button" onClick={exit}>
-          로비로
-        </button>
-      </section>
-    </main>
-  );
-};
+export const App = () => window.location.pathname === "/auth/callback" ? <AuthCallback /> : <GameApp />;
 
-const Upgrade = ({ profile }: Readonly<{ profile: PlayerProfile | null }>) => {
-  const bankGold = useGame(({ bankGold }) => bankGold);
-  const upgrades = useGame(({ upgrades }) => upgrades);
-  const buyUpgrade = useGame(({ buyUpgrade }) => buyUpgrade);
-  const applyUpgradePurchase = useGame(({ applyUpgradePurchase }) => applyUpgradePurchase);
-  const start = useGame(({ start }) => start);
-  const exit = useGame(({ exit }) => exit);
-  const [selectedId, setSelectedId] = useState<UpgradeId>("speed");
-  const [treeNodes, setTreeNodes] = useState(upgradeNodes);
-  const [purchasing, setPurchasing] = useState(false);
-  const [error, setError] = useState("");
-  const findNode = (id: UpgradeId) => treeNodes.find((node) => node.id === id) ?? upgradeNodeById(id);
-  const selected = findNode(selectedId);
-  const selectedLevel = upgrades[selectedId];
-  const selectedCost = selected.costs[selectedLevel] ?? 0;
-  const unmet = unmetUpgradeRequirements(selected, upgrades);
-  const purchase = async () => {
-    if (!canBuyUpgrade(selected, upgrades, bankGold) || purchasing) return;
-    setPurchasing(true);
-    setError("");
-    try {
-      if (profile) {
-        const result = await purchaseUpgrade(selectedId);
-        applyUpgradePurchase(result.upgradeId, result.newLevel, result.gold);
-      } else {
-        buyUpgrade(selectedId);
-      }
-    } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "업그레이드 구매에 실패했습니다.";
-      setError(
-        message.includes("PREREQUISITE")
-          ? "먼저 연결된 선행 업그레이드를 완료하세요."
-          : message.includes("INSUFFICIENT")
-            ? "골드가 부족합니다."
-            : message,
-      );
-    } finally {
-      setPurchasing(false);
-    }
-  };
-  useEffect(() => {
-    soundPlayer.startLobbyMusic();
-    void loadUpgradeCatalog()
-      .then((catalog) => {
-        if (catalog.length)
-          setTreeNodes(
-            upgradeNodes.map((fallback) => catalog.find(({ id }) => id === fallback.id) ?? fallback),
-          );
-      })
-      .catch((reason) => console.warn("업그레이드 카탈로그를 읽지 못해 번들 데이터를 사용합니다.", reason));
-  }, []);
-  return (
-    <main className="upgrade-screen">
-      <section className="upgrade-workshop">
-        <header className="upgrade-header">
-          <div>
-            <p>CAFE WORKSHOP</p>
-            <h1>카페 성장 트리</h1>
-          </div>
-          <strong className="bank">{bankGold.toLocaleString()} G</strong>
-          <div className="upgrade-actions">
-            <button type="button" onClick={() => start()}>
-              영업 시작
-            </button>
-            <button className="secondary" type="button" onClick={exit}>
-              타이틀
-            </button>
-          </div>
-        </header>
-        <div className="upgrade-tree-layout">
-          <div className="upgrade-tree-viewport">
-            <div className="upgrade-tree-grid">
-              {upgradeCategories.map((category) => {
-                const categoryNodes = treeNodes.filter((node) => node.category === category.id);
-                return (
-                  <section
-                    className="upgrade-lane"
-                    key={category.id}
-                    style={{ "--category-color": category.color } as CSSProperties}
-                  >
-                    <header>
-                      <strong>{category.name}</strong>
-                      {category.id === "automation" ? <small>복합 선행 조건</small> : null}
-                    </header>
-                    <div className="upgrade-lane-nodes">
-                      {categoryNodes.map((node, index) => {
-                        const level = upgrades[node.id];
-                        const locked = unmetUpgradeRequirements(node, upgrades).length > 0;
-                        const internalRequirement = node.requirements.find(
-                          ({ upgradeId }) => findNode(upgradeId).category === node.category,
-                        );
-                        const connectorUnlocked = internalRequirement
-                          ? upgrades[internalRequirement.upgradeId] >= internalRequirement.level
-                          : false;
-                        return (
-                          <div className="upgrade-node-wrap" key={node.id}>
-                            {index ? (
-                              <i className={`upgrade-connector ${connectorUnlocked ? "unlocked" : ""}`} />
-                            ) : null}
-                            <button
-                              type="button"
-                              aria-label={`${node.name} Lv.${level}`}
-                              className={`upgrade-node ${node.id === selectedId ? "selected" : ""} ${locked ? "locked" : ""} ${node.premium ? "premium" : ""}`}
-                              onClick={() => setSelectedId(node.id)}
-                            >
-                              <UpgradeIcon id={node.id} />
-                              <span>
-                                {locked
-                                  ? "LOCK"
-                                  : level >= node.maxLevel
-                                    ? "MAX"
-                                    : `${level}/${node.maxLevel}`}
-                              </span>
-                            </button>
-                            <em>{node.name}</em>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
-          </div>
-          <aside className="upgrade-detail">
-            <small>{upgradeCategories.find(({ id }) => id === selected.category)!.name}</small>
-            <h2>{selected.name}</h2>
-            <p>{selected.description}</p>
-            <strong>
-              Lv.{selectedLevel} / {selected.maxLevel}
-            </strong>
-            {selected.requirements.length ? (
-              <div className="upgrade-requirements">
-                <span>선행 조건</span>
-                {selected.requirements.map((requirement) => (
-                  <small
-                    key={requirement.upgradeId}
-                    className={upgrades[requirement.upgradeId] >= requirement.level ? "done" : ""}
-                  >
-                    {findNode(requirement.upgradeId).name} Lv.{requirement.level}
-                  </small>
-                ))}
-              </div>
-            ) : null}
-            {error ? <p className="upgrade-error">{error}</p> : null}
-            <button
-              type="button"
-              disabled={!canBuyUpgrade(selected, upgrades, bankGold) || purchasing}
-              onClick={() => void purchase()}
-            >
-              {selectedLevel >= selected.maxLevel
-                ? "MAX LEVEL"
-                : unmet.length
-                  ? "선행 업그레이드 필요"
-                  : purchasing
-                    ? "구매 처리 중"
-                    : `${selectedCost.toLocaleString()} G · 업그레이드`}
-            </button>
-          </aside>
-        </div>
-      </section>
-    </main>
-  );
-};
-
-export const App = () => {
+const GameApp = () => {
   const screen = useGame(({ screen }) => screen);
-  const bankGold = useGame(({ bankGold }) => bankGold);
-  const upgrades = useGame(({ upgrades }) => upgrades);
-  const unlockedStage = useGame(({ unlockedStage }) => unlockedStage);
-  const discoveredRecipes = useGame(({ discoveredRecipes }) => discoveredRecipes);
-  const seenMenuStages = useGame(({ seenMenuStages }) => seenMenuStages);
-  const hydrateProgress = useGame(({ hydrateProgress }) => hydrateProgress);
-  const setCombinationRecipes = useGame(({ setCombinationRecipes }) => setCombinationRecipes);
-  const [profile, setProfile] = useState<PlayerProfile | null>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [cloudReady, setCloudReady] = useState(false);
+  const { profile, sync, blocked, retry } = useAccountProgress();
   useEffect(() => {
-    void getCurrentProfile()
-      .then((nextProfile) => {
-        setProfile(nextProfile);
-        setAuthReady(true);
-        setCloudReady(!nextProfile);
-      })
-      .catch(() => {
-        setProfile(null);
-        setAuthReady(true);
-        setCloudReady(true);
-      });
-    return subscribeToAuth((nextProfile) => {
-      setProfile(nextProfile);
-      setAuthReady(true);
-      setCloudReady(!nextProfile);
-    });
+    let active = true;
+    void loadCombinationRecipes().then((recipes) => {
+      if (active) useGame.getState().setCombinationRecipes(recipes);
+    }).catch(() => {});
+    return () => { active = false; };
   }, []);
-  useEffect(() => {
-    void loadCombinationRecipes()
-      .then(setCombinationRecipes)
-      .catch((error) => console.warn("DB 레시피를 불러오지 못해 기본 레시피를 사용합니다.", error));
-  }, [setCombinationRecipes]);
-  useEffect(() => {
-    if (!profile) return;
-    setCloudReady(false);
-    void loadProgress(profile.userId)
-      .then((progress) => {
-        hydrateProgress(
-          progress.gold,
-          progress.unlockedStage,
-          progress.upgrades,
-          progress.discoveredRecipes,
-          progress.seenMenuStages,
-        );
-        setCloudReady(true);
-      })
-      .catch((error) => {
-        console.error(error);
-        hydrateProgress(0, 1, {}, [], []);
-        setCloudReady(true);
-      });
-  }, [hydrateProgress, profile]);
-  useEffect(() => {
-    if (!profile || !cloudReady) return;
-    const timeout = window.setTimeout(() => {
-      void saveProgress(profile.userId, {
-        gold: bankGold,
-        unlockedStage,
-        upgrades,
-        discoveredRecipes,
-        seenMenuStages,
-      }).catch(console.error);
-    }, 700);
-    return () => window.clearTimeout(timeout);
-  }, [bankGold, cloudReady, discoveredRecipes, profile, seenMenuStages, unlockedStage, upgrades]);
   useEffect(() => {
     const click = (event: MouseEvent) => {
       if ((event.target as Element | null)?.closest("button:not(:disabled)")) soundPlayer.playUi();
@@ -1228,30 +745,29 @@ export const App = () => {
     document.addEventListener("click", click);
     return () => document.removeEventListener("click", click);
   }, []);
-  if (window.location.pathname === "/auth/callback") return <AuthCallback />;
-  if (!authReady || (profile && !cloudReady))
-    return (
-      <main className="auth-callback">
-        <section>
-          <span className="auth-spinner" />
-          <h1>COFFEE TOWN</h1>
-          <p>{authReady ? "계정 진행도를 불러오고 있습니다" : "로그인 상태를 확인하고 있습니다"}</p>
-        </section>
-      </main>
-    );
+  if (blocked) return (
+    <main className="auth-callback"><section>
+      {sync.status === "loading" ? <span className="auth-spinner" /> : null}
+      <h1>COFFEE TOWN</h1><p>{sync.message}</p>
+      {sync.status === "error" ? <button type="button" onClick={retry}>다시 시도</button> : null}
+    </section></main>
+  );
   const content =
     screen === "title" ? (
       <Title profile={profile} />
     ) : screen === "result" ? (
-      <Result profile={profile} />
+      <Result profile={profile} sync={sync} />
     ) : screen === "upgrade" ? (
-      <Upgrade profile={profile} />
+      <Upgrade />
     ) : (
       <Shift />
     );
   return (
     <>
       {content}
+      {sync.status !== "ready" || sync.message ? <aside className="sync-banner" role="status" aria-live="polite">
+        <span>{sync.message}</span>{sync.status === "error" ? <button type="button" onClick={retry}>저장 다시 시도</button> : null}
+      </aside> : null}
       {screen !== "upgrade" ? <RecipeBook /> : null}
     </>
   );

@@ -1964,3 +1964,32 @@
     border-radius: 20px 0 0 20px;
   }
 }
+
+/* Shared vector illustrations retain names and tier colors for accessible identification. */
+.item-image { display: block; width: 72px; height: 72px; object-fit: contain; flex-shrink: 0; user-select: none; }
+.inventory-select .item-image { width: 58px; height: 58px; margin: 0 auto 2px; }
+.inventory-select { min-height: 104px; }
+.inventory-select > span { white-space: normal; overflow-wrap: anywhere; }
+.recipe-grid article > .item-image { width: 96px; height: 96px; margin: 0 auto 8px; }
+.item-image-unknown { display: grid; place-items: center; font-size: 42px; color: #b6a68e; border-radius: 50%; background: #e9e1d3; }
+.recipe-ingredients { margin-top: 12px; padding-top: 10px; border-top: 1px solid #d9cdb9; }
+.recipe-ingredient-route { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px; margin: 5px 0; }
+.recipe-ingredient { display: flex; align-items: center; gap: 3px; }
+.recipe-ingredient > span { width: 64px; text-align: center; }
+.recipe-ingredient .item-image { width: 48px; height: 48px; margin: auto; }
+.recipe-grid .recipe-ingredient small { display: block; font-size: 10px; color: #75614a; line-height: 1.3; }
+.fridge-grid .item-image { width: 60px; height: 60px; margin: 0 auto 4px; }
+.menu-unlock-modal article .item-image { width: 80px; height: 80px; margin: auto; }
+.recipe-discovery .item-image { width: 88px; height: 88px; margin: auto; }
+.hud .order { position: relative; padding-left: 64px; }
+.hud .order .item-image { position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; }
+.scene-loading { position: absolute; inset: 0; display: grid; place-items: center; color: #65533f; background: #ead7b5; }
+.scene-loading-label { min-width: 220px; padding: 16px 24px; border-radius: 16px; color: #65533f; background: #fff6df; text-align: center; }
+.sync-banner { position: fixed; z-index: 150; bottom: 18px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); display: flex; align-items: center; gap: 16px; padding: 12px 18px; border: 1px solid #d8bd89; border-radius: 16px; background: #fff4dd; color: #56412d; box-shadow: 0 6px 24px #33220f22; font-size: 13px; }
+.sync-banner button { white-space: nowrap; padding: 8px 12px; }
+@media (max-width: 700px) {
+  .inventory-select .item-image { width: 40px; height: 40px; }
+  .inventory-select { min-height: 84px; }
+  .recipe-grid article > .item-image { width: 80px; height: 80px; }
+  .sync-banner { flex-direction: column; gap: 8px; }
+}

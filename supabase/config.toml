@@ -1,0 +1,3 @@
+[functions.settle-shift]
+# index.ts always validates the user's Bearer token with Auth.getUser().
+verify_jwt = false

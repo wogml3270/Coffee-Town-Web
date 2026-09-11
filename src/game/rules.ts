@@ -43,6 +43,7 @@ export type ShiftState = Readonly<{
   upgrades: Upgrades;
   stageId: number;
   rewardMultiplier: number;
+  seed: number;
 }>;
 
 export const defaultUpgrades: Upgrades = {
@@ -78,17 +79,23 @@ const emptyStations = (): Record<StationId, StationRuntime> =>
   Object.fromEntries(stationIds.map((id) => [id, idle()])) as Record<StationId, StationRuntime>;
 const uid = (): string => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 const stageMenu = (stageId: number) => menuCatalog.filter(({ stage }) => stage <= stageId);
-const makeOrder = (sequence: number, stageId: number, previous?: DrinkId): Order => {
+const orderRandom = (seed: number, sequence: number) => {
+  let value = (seed + Math.imul(sequence + 1, 0x6d2b79f5)) | 0;
+  value = Math.imul(value ^ (value >>> 15), value | 1);
+  value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+  return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+};
+const makeOrder = (sequence: number, stageId: number, seed: number, previous?: DrinkId): Order => {
   const menu = stageMenu(stageId);
   const candidates = menu.length > 1 ? menu.filter(({ id }) => id !== previous) : menu;
-  const selected = candidates[Math.floor(Math.random() * candidates.length)] ?? menu[0]!;
+  const selected = candidates[Math.floor(orderRandom(seed, sequence) * candidates.length)] ?? menu[0]!;
   return { id: sequence, itemId: selected.id, name: selected.name, reward: selected.reward };
 };
-const makeOrderQueue = (sequence: number, stageId: number, previous?: DrinkId): readonly Order[] => {
+const makeOrderQueue = (sequence: number, stageId: number, seed: number, previous?: DrinkId): readonly Order[] => {
   const orders: Order[] = [];
   let last = previous;
   for (let index = 0; index < 3; index += 1) {
-    const order = makeOrder(sequence + index, stageId, last);
+    const order = makeOrder(sequence + index, stageId, seed, last);
     orders.push(order);
     last = order.itemId;
   }
@@ -136,9 +143,9 @@ const begin = (
   };
 };
 
-export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1): ShiftState => {
+export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1, seed = Math.floor(Math.random() * 2147483647)): ShiftState => {
   const stage = stages.find(({ id }) => id === stageId) ?? stages[0]!;
-  const orders = makeOrderQueue(0, stage.id);
+  const orders = makeOrderQueue(0, stage.id, seed);
   return {
     time: 360,
     gold: 0,
@@ -160,6 +167,7 @@ export const createShift = (upgrades: Upgrades = defaultUpgrades, stageId = 1): 
     upgrades,
     stageId: stage.id,
     rewardMultiplier: stage.rewardMultiplier,
+    seed,
   };
 };
 
@@ -409,7 +417,7 @@ export const serve = (state: ShiftState, uidToServe: string): ShiftState => {
   );
   const remainingOrders = state.orders.slice(1);
   const previous = remainingOrders.at(-1)?.itemId ?? state.order.itemId;
-  const nextOrder = makeOrder(next + remainingOrders.length, state.stageId, previous);
+  const nextOrder = makeOrder(next + remainingOrders.length, state.stageId, state.seed, previous);
   const orders = [...remainingOrders, nextOrder];
   const earnedScore = calculateOrderScore(state, combo, fever);
   return {

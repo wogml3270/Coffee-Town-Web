@@ -689,7 +689,7 @@ const Interior = () => {
 
 export const CafeScene = memo(() => (
   <Canvas shadows dpr={[1, 1.5]} gl={{ antialias: true, powerPreference: "high-performance" }}>
-    <Suspense fallback={null}>
+    <Suspense fallback={<Html center><div className="scene-loading-label">카페를 준비하고 있습니다…</div></Html>}>
       <Interior />
     </Suspense>
   </Canvas>
@@ -698,8 +698,8 @@ export const CafeScene = memo(() => (
 stations.forEach(({ model }) => {
   if (model) useGLTF.preload(`/assets/models/${model}`);
 });
-for (let stage = 1; stage <= 15; stage += 1)
-  useGLTF.preload(`/assets/models/cafe-shell-stage-${String(stage).padStart(2, "0")}.glb`);
+// Stage shells load only when that stage is mounted. Shared equipment is prefetched
+// after the lazy scene module is requested, never on the initial title screen.
 useGLTF.preload("/assets/models/jieun.glb");
 useGLTF.preload("/assets/models/customer.glb");
 Array.from({ length: 6 }, (_, index) =>
