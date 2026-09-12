@@ -299,15 +299,14 @@ export const useGame = create<GameStore>()(
           return;
         }
         const selectedExists = next.inventory.some(({ uid }) => uid === state.selectedUid);
-        const newest = next.inventory.find(
-          ({ uid }) => !state.shift.inventory.some((item) => item.uid === uid),
-        );
         set({
           shift: next,
           actions: state.sessionId ? [...state.actions, action] : state.actions,
           discoveredRecipes: mergeDiscoveries(state.discoveredRecipes, next),
           newDiscovery: latestDiscovery(state.discoveredRecipes, state.shift, next),
-          selectedUid: selectedExists ? state.selectedUid : (newest?.uid ?? null),
+          // Producing or collecting an item must not silently select it. Keep
+          // an existing selection only while that inventory item still exists.
+          selectedUid: selectedExists ? state.selectedUid : null,
         });
       },
       discard: (uid) =>

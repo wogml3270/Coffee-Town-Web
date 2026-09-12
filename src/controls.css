@@ -2690,3 +2690,54 @@
     gap: 8px;
   }
 }
+
+@media (max-width: 700px) {
+  .mobile-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 36px;
+    gap: 8px;
+    justify-content: initial;
+    padding-right: 4px;
+  }
+  .mobile-business-time {
+    display: grid;
+    align-content: center;
+    justify-items: end;
+    line-height: 1.05;
+  }
+  .mobile-business-time small {
+    color: #c8ad8d;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+  }
+  .mobile-business-time b {
+    margin-top: 3px;
+    color: #fff0d1;
+    font-size: 13px;
+  }
+  .hud .hud-business-time {
+    display: none;
+  }
+  .hud .order {
+    grid-column: 1 / -1;
+    min-height: 58px;
+    padding-left: 54px;
+  }
+  .hud .order > strong {
+    max-width: 100%;
+    overflow: visible;
+    font-size: 13px;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: keep-all;
+  }
+  .hud .order > small {
+    font-size: 8px;
+  }
+  .desktop-shortcut,
+  .recipe-book-button kbd {
+    display: none !important;
+  }
+}

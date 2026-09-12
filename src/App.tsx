@@ -639,6 +639,10 @@ const Shift = () => {
       ) : null}
       <header className="mobile-topbar">
         <strong>COFFEE TOWN</strong>
+        <span className="mobile-business-time">
+          <small>BUSINESS TIME</small>
+          <b>{businessClock(shift.time)}</b>
+        </span>
         <button
           className="mobile-menu-button"
           type="button"
@@ -688,12 +692,12 @@ const Shift = () => {
         ) : null}
       </header>
       <header className="hud">
-        <div>
+        <div className="hud-business-time">
           <small>BUSINESS TIME</small>
           <strong>{businessClock(shift.time)}</strong>
         </div>
         <div className="order" key={shift.order.id}>
-          <small>ORDER {String(shift.orderSequence + 1).padStart(2, "0")}</small>
+          <small>ORDER</small>
           <ItemImage itemId={shift.order.itemId} />
           <strong>{shift.order.name}</strong>
         </div>
@@ -784,7 +788,7 @@ const Shift = () => {
         </div>
       ) : null}
       <aside className="inventory" data-count={shift.inventory.length}>
-              <small>숫자키 1~9 선택</small>
+        <small className="desktop-shortcut">숫자키 1~9 선택</small>
         {shift.inventory.length ? (
           shift.inventory.map((item, index) => {
             const tier = recipeTierOf(item.itemId);
