@@ -1522,40 +1522,132 @@
     color: #a99b8c;
   }
   .upgrade-screen {
-    padding: 8px;
+    min-height: 100dvh;
+    padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right))
+      max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
   }
   .upgrade-workshop {
-    padding: 14px;
-    border-radius: 16px;
+    min-height: 0;
+    padding: 10px;
+    border-radius: 18px;
   }
   .upgrade-header {
     grid-template-columns: 1fr auto;
-    gap: 8px;
+    gap: 6px;
+  }
+  .upgrade-header p {
+    font-size: 9px;
   }
   .upgrade-header h1 {
-    font-size: 26px;
+    margin: 4px 0 2px;
+    font-size: 23px;
+    line-height: 1.1;
   }
   .upgrade-header .bank {
-    font-size: 17px;
+    max-width: 145px;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .upgrade-actions {
-    grid-column: 1 / -1;
+    grid-column: 2;
+    grid-row: 1;
   }
   .upgrade-actions button {
-    flex: 1;
+    padding: 8px 10px;
+    font-size: 11px;
   }
   .upgrade-tree-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(220px, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 190px);
+    border-radius: 14px;
+  }
+  .upgrade-tree-viewport {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .upgrade-tree-grid {
+    min-width: 0;
+    gap: 6px;
+    padding: 6px;
+  }
+  .upgrade-lane {
+    grid-template-columns: 56px minmax(0, 1fr);
+    min-height: 88px;
+    padding: 3px 8px;
+    border-radius: 12px;
+  }
+  .upgrade-lane > header {
+    gap: 3px;
+  }
+  .upgrade-lane > header strong {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
+  .upgrade-lane > header small {
+    font-size: 8px;
+  }
+  .upgrade-lane-nodes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 0 4px;
+  }
+  .upgrade-node {
+    width: 52px;
+    height: 52px;
+    padding: 9px;
+  }
+  .upgrade-node svg {
+    width: 25px;
+    height: 25px;
+  }
+  .upgrade-node span {
+    right: -5px;
+    bottom: -3px;
+    min-width: 24px;
+    padding: 2px 4px;
+    font-size: 8px;
+  }
+  .upgrade-node-wrap > em {
+    margin-top: 3px;
+    font-size: 9px;
+  }
+  .upgrade-connector {
+    top: 25px;
+    border-top-width: 2px;
   }
   .upgrade-detail {
-    max-height: 235px;
-    padding: 15px;
+    min-height: 0;
+    max-height: none;
+    gap: 6px;
+    overflow-y: auto;
+    padding: 10px;
     border-top: 1px solid #dfc9a8;
     border-left: 0;
   }
+  .upgrade-detail > small {
+    font-size: 9px;
+  }
+  .upgrade-detail h2 {
+    font-size: 17px;
+  }
+  .upgrade-detail > p {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .upgrade-requirements {
+    gap: 3px;
+    padding: 7px 9px;
+  }
+  .upgrade-requirements span,
+  .upgrade-requirements small {
+    font-size: 9px;
+  }
   .upgrade-detail > button {
-    margin-top: 2px;
+    min-height: 36px;
+    margin-top: auto;
+    padding: 9px 10px;
+    font-size: 11px;
   }
   .fridge-grid {
     grid-template-columns: repeat(2, 1fr);
